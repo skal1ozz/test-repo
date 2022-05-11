@@ -182,8 +182,13 @@ class CosmosClient:
             )
         tries = 0
         max_tries = max(kwargs.pop("max_tries", 3), 1)
-        while tries < max_tries:
+
+        item_id = body.get("id", None)
+        if item_id is None:
             body.update(dict(id=uuid.uuid4().__str__()))
+
+        while tries < max_tries:
+
             try:
                 return await self.execute_blocking(bl)
             except exceptions.CosmosHttpResponseError as e:
@@ -308,9 +313,8 @@ class CosmosClient:
                                 notification_id: str) -> None:
         """ Save initiation """
         container = await self.get_initiation_container()
-        timestamp = timestamp_factory()
         initiation = Initiation(initiator=initiator,
-                                timestamp=timestamp,
+                                timestamp=timestamp_factory(),
                                 notification_id=notification_id)
         data = Initiation.get_schema().dump(initiation)
         await self.create_item(container, body=data)

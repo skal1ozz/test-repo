@@ -98,12 +98,15 @@ class TeamsMessagingExtensionsActionPreviewBot(TeamsActivityHandler):
                 """ Turn Context callback. Kinda awful syntax, I know """
                 # TODO(s1z): Add exception handler
                 #            (like conversation not found etc...)
-                card = CardHelper.create_notification_card(notification)
-                attachments = [CardFactory.adaptive_card(card)]
-                message = Activity(type=ActivityTypes.message,
-                                   attachments=attachments)
-                await turn_context.send_activity(message)
-                future.set_result(notification.id)
+                try:
+                    card = CardHelper.create_notification_card(notification)
+                    attachments = [CardFactory.adaptive_card(card)]
+                    message = Activity(type=ActivityTypes.message,
+                                       attachments=attachments)
+                    await turn_context.send_activity(message)
+                    future.set_result(notification.id)
+                except Exception as e:
+                    future.set_exception(e)
 
             await self.adapter.continue_conversation(reference, callback,
                                                      self.settings.app_id)
