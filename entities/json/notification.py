@@ -11,9 +11,7 @@ from entities.json.camel_case_mixin import CamelCaseMixin, timestamp_factory
 class NotificationUrl(CamelCaseMixin):
     """ Notifiction URL """
     title: Optional[str]
-    link: Optional[str] = field(metadata=dict(
-        validate=marshmallow.validate.URL()
-    ))
+    link: Optional[str]
 
 
 @dataclass
