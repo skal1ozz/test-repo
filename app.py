@@ -151,6 +151,12 @@ async def v1_messages(request: Request) -> Response:
     return Response(status=HTTPStatus.OK)
 
 
+async def v1_health_check(_request: Request) -> Response:
+    """ Health check """
+    # TODO(s1z): Add checks here. DB, etc.
+    return Response(status=HTTPStatus.OK)
+
+
 @web.middleware
 async def error_middleware(request, handler):
     """ Error handler """
@@ -173,6 +179,7 @@ APP.router.add_post("/api/v1/notification", v1_notification)
 APP.router.add_get("/api/v1/notification/{notification_id}",
                    v1_get_notification)
 APP.router.add_get("/api/v1/initiations/{notification_id}", v1_get_initiations)
+APP.router.add_get("/api/v1/health-check", v1_health_check)
 
 
 BOT.add_web_app(APP)

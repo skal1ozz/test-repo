@@ -23,7 +23,7 @@ class TaskModuleConfig:
 class AppConfig:
     """ Bot Configuration """
 
-    PORT = 3978
+    PORT = os.environ.get("HOST_PORT", 8000)
     APP_ID = os.environ.get("MS_APP_ID",
                             "d472f12a-323b-4058-b89b-7a4b15c48ab7")
     APP_PASSWORD = os.environ.get("MS_APP_PASSWORD",
