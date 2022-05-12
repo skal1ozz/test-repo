@@ -15,6 +15,7 @@ from marshmallow import EXCLUDE
 from entities.json.acknowledge import Acknowledge
 from entities.json.acknowledge_schema import AcknowledgeSchema
 from entities.json.camel_case_mixin import timestamp_factory
+from entities.json.conversation_reference import ConversationReference
 from entities.json.conversation_reference_schema import \
     ConversationReferenceSchema
 from entities.json.initiation import Initiation
@@ -188,7 +189,6 @@ class CosmosClient:
             body.update(dict(id=uuid.uuid4().__str__()))
 
         while tries < max_tries:
-
             try:
                 return await self.execute_blocking(bl)
             except exceptions.CosmosHttpResponseError as e:
@@ -282,6 +282,17 @@ class CosmosClient:
         except ItemNotFound:
             return None
 
+    async def get_conversation(self, conversation_id: str)\
+            -> ConversationReference:
+        """ Get Conversation Reference """
+        from config import AppConfig
+
+        container = await self.get_conversations_container()
+        item = await self.get_item(container, conversation_id,
+                                   AppConfig.TENANT_ID)
+        return ConversationReference.get_schema(unknown=EXCLUDE)\
+                                    .load(item).to_ms_reference()
+
     async def get_notification(self, notification_id: str)\
             -> NotificationCosmos:
         """ Get Notification """
@@ -299,15 +310,23 @@ class CosmosClient:
 
         activity = turn_context.activity
         reference = TurnContext.get_conversation_reference(activity)
-        reference_dict = ConversationReferenceSchema().dump(reference)
+        reference_json = ConversationReference.get_schema().dump(reference)
+        # reference_dict = ConversationReferenceSchema().dump(reference)
         container = await self.get_conversations_container()
-        reference_dict.update({
+        reference_json.update({
             CosmosDBConfig.Conversations.PK: reference.conversation.id
         })
+
+        def bl() -> Dict[str, str]:
+            """ Potential blocking code """
+            return container.create_item(body=reference_json)
+
         try:
-            await self.create_item(container, body=reference_dict, max_tries=1)
-        except ItemExists:
-            pass
+            return await self.execute_blocking(bl)
+        except exceptions.CosmosHttpResponseError as e:
+            if e.status_code == 409:  # Already exists
+                return
+            raise SaveItemError(e.http_error_message)
 
     async def create_initiation(self, initiator: str,
                                 notification_id: str) -> None:

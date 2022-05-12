@@ -24,16 +24,13 @@ class AppConfig:
     """ Bot Configuration """
 
     PORT = os.environ.get("HOST_PORT", 8000)
-    # APP_ID = os.environ.get("MS_APP_ID",
-    #                         "d472f12a-323b-4058-b89b-7a4b15c48ab7")
-    # APP_PASSWORD = os.environ.get("MS_APP_PASSWORD",
-    #                               "ZdL|zw:]Io_}goFfWs2{w70g+.FXwQ")
     TENANT_ID = os.environ.get("TENANT_ID",
                                "5df91ebc-64fa-4aa1-862c-bdc0cba3c656")
-    APP_PASSWORD = os.environ.get("MS_APP_PASSWORD",
-                                  "ahO8Q~tSDvGJUcfN8ACZ51e21hh411vLwkal_dv.")
+
     APP_ID = os.environ.get("MS_APP_ID",
-                            "82109577-846a-442d-9320-776148d77442")
+                            "34b032df-9532-48f8-a8a1-0e864f9e5562")
+    APP_PASSWORD = os.environ.get("MS_APP_PASSWORD",
+                                  "7Ll8Q~XeV3D8vNmM3Q4BNyxYUcMrM1SQtghOndxT")
 
 
 class CosmosDBConfig:

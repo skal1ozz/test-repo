@@ -1,5 +1,6 @@
 """ Message extension bot """
 import asyncio
+import uuid
 from asyncio import Future
 from typing import Optional
 from urllib.parse import urlparse, parse_qsl, urlencode
@@ -16,12 +17,11 @@ from marshmallow import EXCLUDE
 
 from bots.exceptions import ConversationNotFound
 from config import TaskModuleConfig, AppConfig
-from entities.json.acknowledge import Acknowledge
 from entities.json.conversation_reference_schema import (
     ConversationReferenceSchema
 )
 from entities.json.medx import MedX, MXTypes
-from entities.json.notification import Notification, NotificationCosmos
+from entities.json.notification import NotificationCosmos
 from utils.card_helper import CardHelper
 from utils.cosmos_client import CosmosClient, ItemNotFound
 from utils.function import get_first_or_none
@@ -83,23 +83,31 @@ class TeamsMessagingExtensionsActionPreviewBot(TeamsActivityHandler):
         future = Future()
 
         # reset parameters
-        notification.id = None
+        notification.id = uuid.uuid4().__str__()
         notification.tenant_id = AppConfig.TENANT_ID
 
         async def routine():
             """ async routine """
-            _saved_notification = await self.cosmos_client.create_notification(
-                notification
-            )
-            destination = notification.destination
-            reference = await self.get_conversation_reference(destination)
+            try:
+                reference = await self.cosmos_client.get_conversation(
+                    notification.destination
+                )
+            except ItemNotFound:
+                future.set_exception(ConversationNotFound("not found"))
+            except Exception as e:
+                future.set_exception(e)
+                return
 
             async def callback(turn_context: TurnContext) -> None:
                 """ Turn Context callback. Kinda awful syntax, I know """
                 # TODO(s1z): Add exception handler
                 #            (like conversation not found etc...)
                 try:
-                    card = CardHelper.create_notification_card(notification)
+                    card = CardHelper.create_notification_card(
+                        await self.cosmos_client.create_notification(
+                            notification
+                        )
+                    )
                     attachments = [CardFactory.adaptive_card(card)]
                     message = Activity(type=ActivityTypes.message,
                                        attachments=attachments)
@@ -122,27 +130,9 @@ class TeamsMessagingExtensionsActionPreviewBot(TeamsActivityHandler):
         # noinspection PyProtectedMember
         return parsed_url._replace(query=urlencode(params)).geturl()
 
-    # noinspection SqlNoDataSourceInspection,SqlDialectInspection
-    async def get_conversation_reference(self, conversation_id: Optional[str])\
-            -> ConversationReference:
-        """ Get conversation reference from DB """
-        if conversation_id is None:
-            raise ConversationNotFound("conversation_id is None")
-
-        container = await self.cosmos_client.get_conversations_container()
-        tenant_id = AppConfig.TENANT_ID
-        item = get_first_or_none(list(container.query_items(
-            query=f"SELECT * FROM c WHERE c.id=@id",
-            partition_key=tenant_id,
-            parameters=[{"name": "@id",
-                         "value": conversation_id}],
-        )))
-        if item is None:
-            raise ConversationNotFound("conversation_id is not Found")
-        return ConversationReferenceSchema(unknown=EXCLUDE).load(item)
-
     async def on_conversation_update_activity(self, turn_context: TurnContext):
         """ On update conversation """
+        print("activity:", turn_context.activity)
         await self.cosmos_client.create_conversation_reference(turn_context)
 
     async def handle_submit_action(self, turn_context: TurnContext) -> None:
