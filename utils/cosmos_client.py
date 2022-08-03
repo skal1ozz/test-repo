@@ -8,6 +8,7 @@ from typing import Any, Dict, Optional, Union, Iterable, List
 import azure.cosmos.cosmos_client as cosmos_client
 import azure.cosmos.exceptions as exceptions
 from azure.cosmos import DatabaseProxy, ContainerProxy
+from azure.identity import DefaultAzureCredential
 from botbuilder.core import TurnContext
 from botbuilder.schema import ChannelAccount
 from marshmallow import EXCLUDE
@@ -52,8 +53,10 @@ class CosmosClient:
     """ Cosmos Client class """
     def __init__(self, host: str, master_key: str):
         self.executor = futures.ThreadPoolExecutor()
-        self.client = cosmos_client.CosmosClient(host,
-                                                 dict(masterKey=master_key))
+        aad_credentials = DefaultAzureCredential()
+        self.client = cosmos_client.CosmosClient(host, aad_credentials)
+        # self.client = cosmos_client.CosmosClient(host,
+        #                                          dict(masterKey=master_key))
 
     async def execute_blocking(self, bl, *args):
         """ Execute blocking code """
