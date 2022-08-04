@@ -53,10 +53,10 @@ class CosmosClient:
     """ Cosmos Client class """
     def __init__(self, host: str, master_key: str):
         self.executor = futures.ThreadPoolExecutor()
-        aad_credentials = DefaultAzureCredential()
-        self.client = cosmos_client.CosmosClient(host, aad_credentials)
-        # self.client = cosmos_client.CosmosClient(host,
-        #                                          dict(masterKey=master_key))
+        # aad_credentials = DefaultAzureCredential()
+        # self.client = cosmos_client.CosmosClient(host, aad_credentials)
+        self.client = cosmos_client.CosmosClient(host,
+                                                 dict(masterKey=master_key))
 
     async def execute_blocking(self, bl, *args):
         """ Execute blocking code """
