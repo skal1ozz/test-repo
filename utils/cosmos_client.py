@@ -2,14 +2,12 @@
 import asyncio
 import uuid
 from concurrent import futures
-from datetime import datetime
-from typing import Any, Dict, Optional, Union, Iterable, List
+from typing import Any, Dict, Optional, Union, List
 
 import azure.cosmos.cosmos_client as cosmos_client
 import azure.cosmos.exceptions as exceptions
 from azure.cosmos import DatabaseProxy, ContainerProxy
-from azure.identity import DefaultAzureCredential, ClientSecretCredential, \
-    ManagedIdentityCredential, ChainedTokenCredential
+from azure.identity import ManagedIdentityCredential
 from botbuilder.core import TurnContext
 from botbuilder.schema import ChannelAccount
 from marshmallow import EXCLUDE
@@ -18,8 +16,6 @@ from entities.json.acknowledge import Acknowledge
 from entities.json.acknowledge_schema import AcknowledgeSchema
 from entities.json.camel_case_mixin import timestamp_factory
 from entities.json.conversation_reference import ConversationReference
-from entities.json.conversation_reference_schema import \
-    ConversationReferenceSchema
 from entities.json.initiation import Initiation
 from entities.json.notification import NotificationCosmos
 
@@ -54,11 +50,8 @@ class CosmosClient:
     """ Cosmos Client class """
     def __init__(self, host: str, master_key: str):
         self.executor = futures.ThreadPoolExecutor()
-        default_credentials = DefaultAzureCredential()
         mgmt_credentials = ManagedIdentityCredential()
-        credentials = ChainedTokenCredential(mgmt_credentials,
-                                             default_credentials)
-        self.client = cosmos_client.CosmosClient(host, credentials)
+        self.client = cosmos_client.CosmosClient(host, mgmt_credentials)
         # self.client = cosmos_client.CosmosClient(host,
         #                                          dict(masterKey=master_key))
 
