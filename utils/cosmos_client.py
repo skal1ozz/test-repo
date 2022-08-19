@@ -7,7 +7,7 @@ from typing import Any, Dict, Optional, Union, List
 import azure.cosmos.cosmos_client as cosmos_client
 import azure.cosmos.exceptions as exceptions
 from azure.cosmos import DatabaseProxy, ContainerProxy
-from azure.identity import ManagedIdentityCredential
+from azure.identity import ManagedIdentityCredential, DefaultAzureCredential
 from botbuilder.core import TurnContext
 from botbuilder.schema import ChannelAccount
 from marshmallow import EXCLUDE
@@ -50,7 +50,7 @@ class CosmosClient:
     """ Cosmos Client class """
     def __init__(self, host: str, master_key: str):
         self.executor = futures.ThreadPoolExecutor()
-        mgmt_credentials = ManagedIdentityCredential()
+        mgmt_credentials = DefaultAzureCredential()
         self.client = cosmos_client.CosmosClient(host, mgmt_credentials)
         # self.client = cosmos_client.CosmosClient(host,
         #                                          dict(masterKey=master_key))
