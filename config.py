@@ -71,4 +71,4 @@ class CosmosDBConfig:
         PARTITION_KEY = PartitionKey(path="/notificationId")
 
 
-COSMOS_CLIENT = CosmosClient(CosmosDBConfig.HOST, CosmosDBConfig.KEY)
+COSMOS_CLIENT = CosmosClient(CosmosDBConfig.HOST, AppConfig.CLIENT_ID)
