@@ -12,6 +12,7 @@ from botbuilder.core import TurnContext
 from botbuilder.schema import ChannelAccount
 from marshmallow import EXCLUDE
 
+from config import AppConfig
 from entities.json.acknowledge import Acknowledge
 from entities.json.acknowledge_schema import AcknowledgeSchema
 from entities.json.camel_case_mixin import timestamp_factory
@@ -50,7 +51,9 @@ class CosmosClient:
     """ Cosmos Client class """
     def __init__(self, host: str, master_key: str):
         self.executor = futures.ThreadPoolExecutor()
-        mgmt_credentials = ManagedIdentityCredential()
+        mgmt_credentials = ManagedIdentityCredential(
+            client_id=AppConfig.CLIENT_ID
+        )
         self.client = cosmos_client.CosmosClient(host, mgmt_credentials)
         # self.client = cosmos_client.CosmosClient(host,
         #                                          dict(masterKey=master_key))

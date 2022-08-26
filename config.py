@@ -23,6 +23,7 @@ class TaskModuleConfig:
 class AppConfig:
     """ Bot Configuration """
 
+    CLIENT_ID = os.environ.get("CLIENT_ID", None)
     PORT = os.environ.get("HOST_PORT", 8000)
     TENANT_ID = os.environ.get("TENANT_ID",
                                "5df91ebc-64fa-4aa1-862c-bdc0cba3c656")
