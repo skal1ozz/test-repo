@@ -51,7 +51,10 @@ class CosmosClient:
     def __init__(self, host: str, client_id: str):
         self.executor = futures.ThreadPoolExecutor()
         mgmt_credentials = ManagedIdentityCredential(client_id=client_id)
-        self.client = cosmos_client.CosmosClient(host, mgmt_credentials)
+        self.client = cosmos_client.CosmosClient(
+            host, mgmt_credentials,
+            consistency_level=documents.ConsistencyLevel.Strong
+        )
         # self.client = cosmos_client.CosmosClient(host,
         #                                          dict(masterKey=master_key))
 
