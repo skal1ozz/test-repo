@@ -1,24 +1,42 @@
-""" Log helper module """
-import logging
+from __future__ import absolute_import
+from __future__ import unicode_literals
 import traceback
+import logging
 
 
-class Log:
-    """ Logger. This is a pretty useful 'Java style' logger """
+def init_logging(filename=None, level=None):
+    """ init logging on the app level """
+    logging_config = {"format": "%(asctime)-23s %(levelname)8s: %(message)s",
+                      "level": level or logging.INFO}
+    if filename is not None:
+        logging_config["filename"] = filename
+    logging.getLogger().handlers = []
+    logging.basicConfig(**logging_config)
+
+
+class Log(object):
+    """ Logger class """
+
+    LEVEL = logging.DEBUG
+
+    logger = logging.getLogger()
+    logging_config = {"format": "%(asctime)-23s %(levelname)8s: %(message)s",
+                      "level": logging.DEBUG}
+    logging.basicConfig(**logging_config)
 
     @staticmethod
     def log(level, source, message="", exc_info=None):
         """ log method """
-        logger = logging.getLogger()
-        line = "{source}{message}{exc}"
+        logger = logging.getLogger(source)
+        line = "{message}{exc}"
         exc = ''
         if isinstance(exc_info, (list, tuple)):
             ex_type, ex_value, ex_traceback = exc_info
             exc = ": " + ''.join(
                 traceback.format_exception(ex_type, ex_value, ex_traceback)
             )
-        message = "::{}".format(message) if message else ""
-        logger.log(level, line.format(source=source, message=message, exc=exc))
+        message = "::{}".format(message) if message else ''
+        logger.log(level, line.format(message=message, exc=exc))
 
     @staticmethod
     def w(source, message="", exc_info=None):

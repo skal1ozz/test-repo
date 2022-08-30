@@ -23,6 +23,7 @@ from config import AppConfig, COSMOS_CLIENT, CosmosDBConfig
 from entities.json.notification import Notification, NotificationCosmos
 from utils.cosmos_client import ItemNotFound
 from utils.json_func import json_loads
+from utils.log import Log
 
 app_config = AppConfig()
 
@@ -32,6 +33,7 @@ app_settings = BotFrameworkAdapterSettings(app_config.APP_ID,
                                            app_config.APP_PASSWORD)
 
 ADAPTER = BotFrameworkAdapter(app_settings)
+TAG = __name__
 
 
 # noinspection PyShadowingNames
@@ -102,10 +104,10 @@ async def v1_get_notification(request: Request) -> Response:
         ))
         return Response(body=json.dumps(data), status=HTTPStatus.OK)
     except ItemNotFound as e:
-        print("ItemNotFound:", e)
+        Log.e(TAG, "v1_get_notification::item not found", e)
         return Response(status=HTTPStatus.NOT_FOUND)
     except Exception as e:
-        print("error:", e)
+        Log.e(TAG, exc_info=e)
     return Response(status=HTTPStatus.BAD_REQUEST)
 
 
@@ -154,6 +156,7 @@ async def v1_messages(request: Request) -> Response:
 async def v1_health_check(_request: Request) -> Response:
     """ Health check """
     # TODO(s1z): Add checks here. DB, etc.
+    Log.i(TAG, "v1_health_check::ok")
     return Response(status=HTTPStatus.OK)
 
 
