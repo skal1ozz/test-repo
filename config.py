@@ -38,7 +38,7 @@ class CosmosDBConfig:
     """ Cosmos Databases """
     HOST = os.environ.get('ACCOUNT_HOST',
                           'https://nancycosomsdb.documents.azure.com:443/')
-    KEY = os.environ.get('ACCOUNT_KEY',
+    KEY = os.environ.get('COSMOS_KEY',
                          'fNVRCesO1NAb9MYZNK2rKdAPkY9J4O5ntR8CRuKu6wVGhndiaXch'
                          'Q6fKwrTTnTbv4tPM8S74YjZsfcX4uAHgiw==')
 
@@ -71,4 +71,4 @@ class CosmosDBConfig:
         PARTITION_KEY = PartitionKey(path="/notificationId")
 
 
-COSMOS_CLIENT = CosmosClient(CosmosDBConfig.HOST, AppConfig.CLIENT_ID)
+COSMOS_CLIENT = CosmosClient(CosmosDBConfig.HOST, CosmosDBConfig.KEY)
