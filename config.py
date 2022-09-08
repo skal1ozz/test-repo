@@ -71,4 +71,5 @@ class CosmosDBConfig:
 
 
 COSMOS_CLIENT = CosmosClient(CosmosDBConfig.HOST, CosmosDBConfig.KEY)
-KEYVAULT_CLIENT = AzureKeyVaultClient(AppConfig.CLIENT_ID, AppConfig.KEY_VAULT)
+KEY_VAULT_CLIENT = AzureKeyVaultClient(AppConfig.CLIENT_ID,
+                                       AppConfig.KEY_VAULT)

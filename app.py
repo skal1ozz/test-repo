@@ -19,7 +19,7 @@ from marshmallow import ValidationError, EXCLUDE
 
 from bots import TeamsMessagingExtensionsActionPreviewBot
 from bots.exceptions import ConversationNotFound, DataParsingError
-from config import AppConfig, COSMOS_CLIENT, CosmosDBConfig
+from config import AppConfig, COSMOS_CLIENT, CosmosDBConfig, KEY_VAULT_CLIENT
 from entities.json.notification import Notification, NotificationCosmos
 from utils.cosmos_client import ItemNotFound
 from utils.json_func import json_loads
@@ -157,6 +157,23 @@ async def v1_health_check(_request: Request) -> Response:
     """ Health check """
     # TODO(s1z): Add checks here. DB, etc.
     Log.i(TAG, "v1_health_check::ok")
+    key = None
+    container = None
+    try:
+        container = await COSMOS_CLIENT.get_conversations_container()
+        key = await KEY_VAULT_CLIENT.get_random_key()
+    except Exception as e:
+        Log.e(TAG, "v1_health_check::error", e)
+    if key is None:
+        return Response(
+            status=HTTPStatus.INTERNAL_SERVER_ERROR,
+            body=json.dumps({"error": "Can't connect to KeyVault"})
+        )
+    if container is None:
+        return Response(
+            status=HTTPStatus.INTERNAL_SERVER_ERROR,
+            body=json.dumps({"error": "Can't connect to CosmosDB"})
+        )
     return Response(status=HTTPStatus.OK)
 
 

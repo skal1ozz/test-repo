@@ -40,8 +40,9 @@ class AzureKeyVaultClient:
 
     async def get_random_key_bl(self) -> KeyVaultKey:
         """ Blocking get random key """
-        keys = self.key_client.list_properties_of_keys()
-        await self.execute_blocking(self.key_client.list_properties_of_keys)
+        keys = await self.execute_blocking(
+            self.key_client.list_properties_of_keys
+        )
         all_keys = []
         for key in keys:
             all_keys.append(key)
