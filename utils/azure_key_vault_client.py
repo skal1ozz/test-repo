@@ -27,12 +27,21 @@ class AzureKeyVaultClient:
         self.credential = ManagedIdentityCredential(client_id=client_id)
         self.key_client = KeyClient(vault_url=self.key_vault_uri,
                                     credential=self.credential)
+        self.secret_client = SecretClient(vault_url=self.key_vault_uri,
+                                          credential=self.credential)
 
     async def execute_blocking(self, bl, *args):
         """ Execute blocking code """
-        return await asyncio.get_event_loop().run_in_executor(self.executor,
-                                                              bl,
-                                                              *args)
+        return await self.io_loop.run_in_executor(self.executor, bl, *args)
+
+    def set_secret(self, name: str, value: str) -> Awaitable["KeyVaultSecret"]:
+        """ Async set secret """
+        return self.execute_blocking(self.secret_client.set_secret, name,
+                                     value)
+
+    def get_secret(self, name: str) -> Awaitable["KeyVaultSecret"]:
+        """ Async get secret """
+        return self.execute_blocking(self.secret_client.get_secret, name)
 
     def get_key(self, name: str) -> Awaitable["KeyVaultKey"]:
         """ Async get key """

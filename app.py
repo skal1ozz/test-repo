@@ -161,20 +161,25 @@ async def v1_health_check(_request: Request) -> Response:
     container = None
     try:
         container = await COSMOS_CLIENT.get_conversations_container()
-        key = await KEY_VAULT_CLIENT.get_random_key()
+        data = await KEY_VAULT_CLIENT.get_secret("adminLogin")
+        return Response(body=json.dumps(dict(data=data)),
+                        status=HTTPStatus.OK,
+                        content_type="application/json")
     except Exception as e:
         Log.e(TAG, "v1_health_check::error", e)
     if key is None:
         return Response(
             status=HTTPStatus.INTERNAL_SERVER_ERROR,
-            body=json.dumps({"error": "Can't connect to KeyVault"})
+            body=json.dumps({"error": "Can't connect to KeyVault"}),
+            content_type="application/json"
         )
     if container is None:
         return Response(
             status=HTTPStatus.INTERNAL_SERVER_ERROR,
-            body=json.dumps({"error": "Can't connect to CosmosDB"})
+            body=json.dumps({"error": "Can't connect to CosmosDB"}),
+            content_type="application/json"
         )
-    return Response(status=HTTPStatus.OK)
+    return Response(status=HTTPStatus.OK, content_type="application/json")
 
 
 @web.middleware
