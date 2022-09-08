@@ -3,6 +3,7 @@ import os
 
 from azure.cosmos import PartitionKey
 
+from utils.azure_key_vault_client import AzureKeyVaultClient
 from utils.cosmos_client import CosmosClient
 
 
@@ -24,6 +25,7 @@ class AppConfig:
     """ Bot Configuration """
 
     CLIENT_ID = os.environ.get("CLIENT_ID", None)
+    KEY_VAULT = os.environ.get("KEY_VAULT", '')
     PORT = os.environ.get("HOST_PORT", 8000)
     TENANT_ID = os.environ.get("TENANT_ID",
                                "5df91ebc-64fa-4aa1-862c-bdc0cba3c656")
@@ -36,11 +38,8 @@ class AppConfig:
 
 class CosmosDBConfig:
     """ Cosmos Databases """
-    HOST = os.environ.get('ACCOUNT_HOST',
-                          'https://nancycosomsdb.documents.azure.com:443/')
-    KEY = os.environ.get('COSMOS_KEY',
-                         'fNVRCesO1NAb9MYZNK2rKdAPkY9J4O5ntR8CRuKu6wVGhndiaXch'
-                         'Q6fKwrTTnTbv4tPM8S74YjZsfcX4uAHgiw==')
+    HOST = os.environ.get('ACCOUNT_HOST', '')
+    KEY = os.environ.get('COSMOS_KEY', '')
 
     class Conversations:
         """ Conversation DB """
@@ -72,3 +71,4 @@ class CosmosDBConfig:
 
 
 COSMOS_CLIENT = CosmosClient(CosmosDBConfig.HOST, CosmosDBConfig.KEY)
+KEYVAULT_CLIENT = AzureKeyVaultClient(AppConfig.CLIENT_ID, AppConfig.KEY_VAULT)

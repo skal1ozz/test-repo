@@ -7,3 +7,6 @@ aiohttp~=3.7.0
 simplejson==3.17.6
 marshmallow-dataclass==8.5.8
 stringcase==1.2.0
+azure-keyvault-secrets==4.2.0
+azure-keyvault-keys==4.3.1
+
