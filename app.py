@@ -166,7 +166,8 @@ async def v1_health_check(_request: Request) -> Response:
                         status=HTTPStatus.OK,
                         content_type="application/json")
     except Exception as e:
-        Log.e(TAG, "v1_health_check::error", e)
+        Log.e(TAG, f"v1_health_check::error:{e}", sys.exc_info())
+        raise
     if key is None:
         return Response(
             status=HTTPStatus.INTERNAL_SERVER_ERROR,
