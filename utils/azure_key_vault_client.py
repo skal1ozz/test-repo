@@ -24,7 +24,8 @@ class AzureKeyVaultClient:
         self.key_vault_uri = "https://{key_vault}.vault.azure.net".format(
             key_vault=key_vault
         )
-        self.credential = ManagedIdentityCredential(client_id=client_id)
+        # self.credential = ManagedIdentityCredential(client_id=client_id)
+        self.credential = DefaultAzureCredential()
         self.key_client = KeyClient(vault_url=self.key_vault_uri,
                                     credential=self.credential)
         self.secret_client = SecretClient(vault_url=self.key_vault_uri,
