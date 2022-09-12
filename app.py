@@ -161,7 +161,7 @@ async def v1_health_check(_request: Request) -> Response:
     container = None
     try:
         container = await COSMOS_CLIENT.get_conversations_container()
-        data = await KEY_VAULT_CLIENT.get_secret("adminLogin")
+        data = await KEY_VAULT_CLIENT.get_secret("adminLogin").value
         return Response(body=json.dumps(dict(data=data)),
                         status=HTTPStatus.OK,
                         content_type="application/json")
