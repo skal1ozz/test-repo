@@ -9,6 +9,7 @@ import marshmallow_dataclass
 from aiohttp import web
 from aiohttp.web import Request, Response, json_response
 from azure.cosmos import PartitionKey
+from azure.identity import ManagedIdentityCredential
 from botbuilder.core import (
     BotFrameworkAdapterSettings,
     TurnContext,
@@ -29,8 +30,9 @@ app_config = AppConfig()
 
 # Create adapter.
 # See https://aka.ms/about-bot-adapter to learn more about how bots work.
+app_credentials = ManagedIdentityCredential(client_id=AppConfig.CLIENT_ID)
 app_settings = BotFrameworkAdapterSettings(app_config.APP_ID,
-                                           app_config.APP_PASSWORD)
+                                           app_credentials=app_credentials)
 
 ADAPTER = BotFrameworkAdapter(app_settings)
 TAG = __name__
