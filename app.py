@@ -31,7 +31,7 @@ app_config = AppConfig()
 # Create adapter.
 # See https://aka.ms/about-bot-adapter to learn more about how bots work.
 app_credentials = ManagedIdentityCredential(client_id=AppConfig.CLIENT_ID)
-app_settings = BotFrameworkAdapterSettings(app_config.APP_ID,
+app_settings = BotFrameworkAdapterSettings(AppConfig.CLIENT_ID,
                                            app_credentials=app_credentials)
 
 ADAPTER = BotFrameworkAdapter(app_settings)
