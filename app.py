@@ -5,23 +5,20 @@ import traceback
 from datetime import datetime
 from http import HTTPStatus
 
-import marshmallow_dataclass
 from aiohttp import web
 from aiohttp.web import Request, Response, json_response
-from azure.cosmos import PartitionKey
-from azure.identity import ManagedIdentityCredential
 from botbuilder.core import (
     BotFrameworkAdapterSettings,
     TurnContext,
     BotFrameworkAdapter,
 )
 from botbuilder.schema import Activity, ActivityTypes
-from marshmallow import ValidationError, EXCLUDE
+from marshmallow import EXCLUDE
 
 from bots import TeamsMessagingExtensionsActionPreviewBot
 from bots.exceptions import ConversationNotFound, DataParsingError
-from config import AppConfig, COSMOS_CLIENT, CosmosDBConfig, KEY_VAULT_CLIENT
-from entities.json.notification import Notification, NotificationCosmos
+from config import AppConfig, COSMOS_CLIENT, KEY_VAULT_CLIENT
+from entities.json.notification import Notification
 from utils.cosmos_client import ItemNotFound
 from utils.json_func import json_loads
 from utils.log import Log
@@ -30,9 +27,8 @@ app_config = AppConfig()
 
 # Create adapter.
 # See https://aka.ms/about-bot-adapter to learn more about how bots work.
-app_credentials = ManagedIdentityCredential(client_id=AppConfig.CLIENT_ID)
-app_settings = BotFrameworkAdapterSettings(AppConfig.CLIENT_ID,
-                                           app_credentials=app_credentials)
+app_settings = BotFrameworkAdapterSettings(app_config.APP_ID,
+                                           app_config.APP_PASSWORD)
 
 ADAPTER = BotFrameworkAdapter(app_settings)
 TAG = __name__
