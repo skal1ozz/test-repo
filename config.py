@@ -11,6 +11,18 @@ PROJECT_ROOT_PATH = os.path.dirname(os.path.abspath("__file__"))
 CARDS_PATH = os.path.join(PROJECT_ROOT_PATH, "assets/cards")
 
 
+class TeamsAppConfig:
+    """ Teams app config """
+    teams_app_items = "teams_app_items"
+    manifest = os.path.join(PROJECT_ROOT_PATH, teams_app_items,
+                                 "manifest,json")
+    image_192x192 = os.path.join(PROJECT_ROOT_PATH, teams_app_items,
+                                 "color_192x192.png")
+    image_32x32 = os.path.join(PROJECT_ROOT_PATH, teams_app_items,
+                               "outline_32x32.png")
+    zip_file = os.path.join(PROJECT_ROOT_PATH, teams_app_items, "app.zip")
+
+
 class TaskModuleConfig:
     """ Task Module config """
     TITLE = os.environ.get("TASK_MODULE_TITLE",
@@ -30,10 +42,9 @@ class AppConfig:
     TENANT_ID = os.environ.get("TENANT_ID",
                                "5df91ebc-64fa-4aa1-862c-bdc0cba3c656")
 
-    APP_ID = os.environ.get("MS_APP_ID",
-                            "34b032df-9532-48f8-a8a1-0e864f9e5562")
-    APP_PASSWORD = os.environ.get("MS_APP_PASSWORD",
-                                  "7Ll8Q~XeV3D8vNmM3Q4BNyxYUcMrM1SQtghOndxT")
+    WEB_APP_NAME = os.environ.get("WEB_APP_NAME", "")
+    APP_ID = os.environ.get("MS_APP_ID", "")
+    APP_PASSWORD = os.environ.get("MS_APP_PASSWORD", "")
 
 
 class CosmosDBConfig:

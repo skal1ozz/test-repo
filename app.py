@@ -7,6 +7,7 @@ from http import HTTPStatus
 
 from aiohttp import web
 from aiohttp.web import Request, Response, json_response
+from aiohttp.web_fileresponse import FileResponse
 from botbuilder.core import (
     BotFrameworkAdapterSettings,
     TurnContext,
@@ -17,7 +18,7 @@ from marshmallow import EXCLUDE
 
 from bots import TeamsMessagingExtensionsActionPreviewBot
 from bots.exceptions import ConversationNotFound, DataParsingError
-from config import AppConfig, COSMOS_CLIENT, KEY_VAULT_CLIENT
+from config import AppConfig, COSMOS_CLIENT, KEY_VAULT_CLIENT, TeamsAppConfig
 from entities.json.notification import Notification
 from utils.cosmos_client import ItemNotFound
 from utils.json_func import json_loads
@@ -160,25 +161,21 @@ async def v1_health_check(_request: Request) -> Response:
     try:
         container = await COSMOS_CLIENT.get_conversations_container()
         data = (await KEY_VAULT_CLIENT.get_secret("adminLogin")).value
-        return Response(body=json.dumps(dict(data=data)),
+        key = await KEY_VAULT_CLIENT.create_key("pumpalot")
+        encrypted_data = await KEY_VAULT_CLIENT.encrypt(key, b"hello")
+        decrypted_data = await KEY_VAULT_CLIENT.decrypt(key, encrypted_data)
+        return Response(body=json.dumps(dict(data=decrypted_data)),
                         status=HTTPStatus.OK,
                         content_type="application/json")
     except Exception as e:
         Log.e(TAG, f"v1_health_check::error:{e}", sys.exc_info())
         raise
-    if key is None:
-        return Response(
-            status=HTTPStatus.INTERNAL_SERVER_ERROR,
-            body=json.dumps({"error": "Can't connect to KeyVault"}),
-            content_type="application/json"
-        )
-    if container is None:
-        return Response(
-            status=HTTPStatus.INTERNAL_SERVER_ERROR,
-            body=json.dumps({"error": "Can't connect to CosmosDB"}),
-            content_type="application/json"
-        )
-    return Response(status=HTTPStatus.OK, content_type="application/json")
+
+
+async def get_app_zip(request: Request) -> FileResponse:
+    """ Get zip file """
+    Log.i(TAG, "v1_health_check::ok")
+    return FileResponse(path=TeamsAppConfig.zip_file)
 
 
 @web.middleware
@@ -204,6 +201,7 @@ APP.router.add_get("/api/v1/notification/{notification_id}",
                    v1_get_notification)
 APP.router.add_get("/api/v1/initiations/{notification_id}", v1_get_initiations)
 APP.router.add_get("/api/v1/health-check", v1_health_check)
+APP.router.add_get("/app.zip", get_app_zip)
 
 
 BOT.add_web_app(APP)

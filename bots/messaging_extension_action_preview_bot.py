@@ -94,6 +94,7 @@ class TeamsMessagingExtensionsActionPreviewBot(TeamsActivityHandler):
                 )
             except ItemNotFound:
                 future.set_exception(ConversationNotFound("not found"))
+                return
             except Exception as e:
                 future.set_exception(e)
                 return
