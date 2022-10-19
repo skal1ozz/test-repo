@@ -8,19 +8,17 @@ from utils.cosmos_client import CosmosClient
 
 
 PROJECT_ROOT_PATH = os.path.dirname(os.path.abspath("__file__"))
-CARDS_PATH = os.path.join(PROJECT_ROOT_PATH, "assets/cards")
+ASSETS_PATH = os.path.join(PROJECT_ROOT_PATH, "assets")
+CARDS_PATH = os.path.join(ASSETS_PATH, "cards")
 
 
 class TeamsAppConfig:
     """ Teams app config """
-    teams_app_items = "teams_app_items"
-    manifest = os.path.join(PROJECT_ROOT_PATH, teams_app_items,
-                                 "manifest,json")
-    image_192x192 = os.path.join(PROJECT_ROOT_PATH, teams_app_items,
-                                 "color_192x192.png")
-    image_32x32 = os.path.join(PROJECT_ROOT_PATH, teams_app_items,
-                               "outline_32x32.png")
-    zip_file = os.path.join(PROJECT_ROOT_PATH, teams_app_items, "app.zip")
+    teams_app_items = os.path.join(ASSETS_PATH, "teams_app_items")
+    manifest = os.path.join(teams_app_items, "manifest,json")
+    image_192x192 = os.path.join(teams_app_items, "color_192x192.png")
+    image_32x32 = os.path.join(teams_app_items, "outline_32x32.png")
+    zip_file = os.path.join(teams_app_items, "app.zip")
 
 
 class TaskModuleConfig:
@@ -36,21 +34,22 @@ class TaskModuleConfig:
 class AppConfig:
     """ Bot Configuration """
 
-    CLIENT_ID = os.environ.get("CLIENT_ID", None)
-    KEY_VAULT = os.environ.get("KEY_VAULT", '')
+    CLIENT_ID = os.environ.get("CLIENT_ID",
+                               "00000000-0000-0000-0000-000000000000")
+    KEY_VAULT = os.environ.get("KEY_VAULT", "key-vault")
     PORT = os.environ.get("HOST_PORT", 8000)
     TENANT_ID = os.environ.get("TENANT_ID",
-                               "5df91ebc-64fa-4aa1-862c-bdc0cba3c656")
+                               "00000000-0000-0000-0000-000000000000")
 
-    WEB_APP_NAME = os.environ.get("WEB_APP_NAME", "")
-    APP_ID = os.environ.get("MS_APP_ID", "")
-    APP_PASSWORD = os.environ.get("MS_APP_PASSWORD", "")
+    WEB_APP_NAME = os.environ.get("WEB_APP_NAME", "wa-name")
+    APP_ID = os.environ.get("MS_APP_ID", "app-id")
+    APP_PASSWORD = os.environ.get("MS_APP_PASSWORD", "app-password")
 
 
 class CosmosDBConfig:
     """ Cosmos Databases """
-    HOST = os.environ.get('ACCOUNT_HOST', '')
-    KEY = os.environ.get('COSMOS_KEY', '')
+    HOST = os.environ.get("ACCOUNT_HOST", "host")
+    KEY = os.environ.get("COSMOS_KEY", "key")
 
     class Conversations:
         """ Conversation DB """

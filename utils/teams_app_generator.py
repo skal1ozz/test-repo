@@ -10,7 +10,7 @@ manifest = {
     "version": "1.0.0",
     "manifestVersion": "1.0.0",
     # "id": "THIS IS AN APP SERVICE ID",
-    "packageName": "net.azurewebsites.bot-name",
+    # "packageName": "net.azurewebsites.bot-name",
     # "name": {
     #     "short": "Cakebot-3",
     #     "full": "Cakebot-3"
@@ -59,6 +59,10 @@ class TeamsAppGenerator:
         """ Generate manifest """
         # ID
         manifest.update(dict(id=AppConfig.APP_ID))
+        # Package name
+        manifest.update(dict(
+            packageName="net.azurewebsites.{}".format(AppConfig.WEB_APP_NAME)
+        ))
         # Namings
         details = dict(short=AppConfig.WEB_APP_NAME,
                        full=AppConfig.WEB_APP_NAME)
