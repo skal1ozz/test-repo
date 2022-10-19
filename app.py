@@ -164,9 +164,11 @@ async def v1_health_check(_request: Request) -> Response:
         key = await KEY_VAULT_CLIENT.create_key("pumpalot")
         encrypted_data = await KEY_VAULT_CLIENT.encrypt(key, b"hello")
         decrypted_data = await KEY_VAULT_CLIENT.decrypt(key, encrypted_data)
-        return Response(body=json.dumps(dict(data=decrypted_data)),
-                        status=HTTPStatus.OK,
-                        content_type="application/json")
+        return Response(
+            body=json.dumps(dict(data=decrypted_data.decode("utf-8"))),
+            status=HTTPStatus.OK,
+            content_type="application/json"
+        )
     except Exception as e:
         Log.e(TAG, f"v1_health_check::error:{e}", sys.exc_info())
         raise
