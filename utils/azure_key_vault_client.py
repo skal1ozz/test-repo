@@ -2,7 +2,7 @@
 import asyncio
 import random
 from concurrent.futures.thread import ThreadPoolExecutor
-from typing import Awaitable, Coroutine
+from typing import Awaitable
 
 # noinspection PyPackageRequirements
 from azure.keyvault.keys import KeyClient, KeyVaultKey
@@ -84,10 +84,10 @@ class AzureKeyVaultClient:
         result = cipher.decrypt(EncryptionAlgorithm.rsa_oaep, data)
         return result.plaintext
 
-    def encrypt(self, key: KeyVaultKey, data: bytes) -> Coroutine[bytes]:
+    def encrypt(self, key: KeyVaultKey, data: bytes) -> Awaitable[bytes]:
         """ Encrypt data """
         return self.execute_blocking(self.encrypt_bl, key, data)
 
-    def decrypt(self, key: KeyVaultKey, data: bytes) -> Coroutine[bytes]:
-        """ Encrypt data """
+    def decrypt(self, key: KeyVaultKey, data: bytes) -> Awaitable[bytes]:
+        """ Decrypt data """
         return self.execute_blocking(self.decrypt_bl, key, data)
