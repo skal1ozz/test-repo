@@ -65,8 +65,8 @@ class TeamsAppGenerator:
             packageName="net.azurewebsites.{}".format(AppConfig.WEB_APP_NAME)
         ))
         # Namings
-        details = dict(short=AppConfig.WEB_APP_NAME,
-                       full=AppConfig.WEB_APP_NAME)
+        details = dict(short=AppConfig.BOT_NAME,
+                       full=AppConfig.BOT_NAME)
         manifest.update(dict(name=details))
         manifest.update(dict(description=details))
 

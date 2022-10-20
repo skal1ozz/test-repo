@@ -42,6 +42,7 @@ class AppConfig:
     TENANT_ID = os.environ.get("TENANT_ID",
                                "00000000-0000-0000-0000-000000000000")
 
+    BOT_NAME = os.environ.get("BOT_NAME", 'TheBot')
     WEB_APP_NAME = os.environ.get("WEB_APP_NAME", "wa-name")
     APP_ID = os.environ.get("MS_APP_ID", "app-id")
     APP_PASSWORD = os.environ.get("MS_APP_PASSWORD", "app-password")
