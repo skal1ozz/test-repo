@@ -2,9 +2,11 @@
 import asyncio
 import json
 import os
+from urllib.parse import urlparse
 from zipfile import ZipFile, ZIP_DEFLATED
 
-from config import AppConfig, TeamsAppConfig
+from config import AppConfig, TeamsAppConfig, TaskModuleConfig
+from utils.json_func import json_loads
 
 manifest = {
     "$schema": "https://developer.microsoft.com/en-us/json-schemas/teams/v1.14/MicrosoftTeams.schema.json",
@@ -27,8 +29,8 @@ manifest = {
         "short": "Cakebot-3", "full": "Cakebot-3 Bot"
     },
     "icons": {
-        "outline": "outline_32x32.png",
-        "color": "color_192x192.png"
+        "outline": "outline.png",
+        "color": "color.png"
     },
     "accentColor": "#ffffff",
     "staticTabs": [
@@ -56,6 +58,24 @@ class TeamsAppGenerator:
     """ Teams App Generator implementation """
 
     @staticmethod
+    def get_valid_domains():
+        """ get valid domains """
+        valid_domains = []
+        domain_items = json_loads(TaskModuleConfig.VALID_DOMAINS, [])
+        for domain_item in domain_items:
+            valid_domain = domain_item.get("validDomain", "")
+            if valid_domain.find("://") < 0:
+                valid_domain = "{}{}".format("https://", valid_domain)
+            valid_domain = urlparse(valid_domain).hostname
+            if valid_domain:
+                valid_domains.append(valid_domain)
+
+        default_domain = urlparse(TaskModuleConfig.URL).hostname
+        if default_domain and default_domain not in valid_domains:
+            valid_domains.append(default_domain)
+        return valid_domains
+
+    @staticmethod
     def gen_manifest():
         """ Generate manifest """
         # ID
@@ -81,7 +101,10 @@ class TeamsAppGenerator:
         # WebAppInfo
         web_app_info = dict(id=AppConfig.APP_ID, resource="")
         manifest.update(dict(webApplicationInfo=web_app_info))
-        #
+
+        # Valid domains
+        valid_domains = TeamsAppGenerator.get_valid_domains()
+        manifest.update(dict(validDomains=valid_domains))
         with open(TeamsAppConfig.manifest, "w") as f:
             f.write(json.dumps(manifest))
             f.flush()

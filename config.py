@@ -30,6 +30,7 @@ class TaskModuleConfig:
                          "https://fake.s1z.info/show-channel.html")
     WIDTH = "large"
     HEIGHT = "large"
+    VALID_DOMAINS = os.environ.get("VALID_DOMAINS", '[{"validDomain": ""}]')
 
 
 class AppConfig:
