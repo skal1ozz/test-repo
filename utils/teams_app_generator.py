@@ -9,7 +9,7 @@ from config import AppConfig, TeamsAppConfig
 manifest = {
     "$schema": "https://developer.microsoft.com/en-us/json-schemas/teams/v1.14/MicrosoftTeams.schema.json",
     "version": "1.0.0",
-    "manifestVersion": "1.0.0",
+    "manifestVersion": "1.14",
     # "id": "THIS IS AN APP SERVICE ID",
     # "packageName": "net.azurewebsites.bot-name",
     # "name": {
@@ -26,10 +26,10 @@ manifest = {
     "description": {
         "short": "Cakebot-3", "full": "Cakebot-3 Bot"
     },
-    # "icons": {
-    #     "outline": "outline.png",
-    #     "color": "color.png"
-    # },
+    "icons": {
+        "outline": "outline_32x32.png",
+        "color": "color_192x192.png"
+    },
     "accentColor": "#ffffff",
     "staticTabs": [
         {"entityId": "conversations", "scopes": ["personal"]},
