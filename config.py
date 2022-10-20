@@ -16,8 +16,8 @@ class TeamsAppConfig:
     """ Teams app config """
     teams_app_items = os.path.join(ASSETS_PATH, "teams_app_items")
     manifest = os.path.join(teams_app_items, "manifest,json")
-    image_192x192 = os.path.join(teams_app_items, "color_192x192.png")
-    image_32x32 = os.path.join(teams_app_items, "outline_32x32.png")
+    image_192x192 = os.path.join(teams_app_items, "color.png")
+    image_32x32 = os.path.join(teams_app_items, "outline.png")
     zip_name = "app.zip"
     zip_file = os.path.join(teams_app_items, zip_name)
 
