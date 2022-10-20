@@ -79,7 +79,7 @@ class TeamsAppGenerator:
     def gen_manifest():
         """ Generate manifest """
         # ID
-        manifest.update(dict(id=AppConfig.APP_ID))
+        manifest.update(dict(id=AppConfig.CLIENT_ID))
         # Package name
         manifest.update(dict(
             packageName="net.azurewebsites.{}".format(AppConfig.WEB_APP_NAME)
@@ -91,7 +91,7 @@ class TeamsAppGenerator:
         manifest.update(dict(description=details))
 
         # Bot
-        bot = dict(botId=AppConfig.CLIENT_ID,
+        bot = dict(botId=AppConfig.APP_ID,
                    scopes=["personal", "team", "groupchat"],
                    isNotificationOnly=False,
                    supportsCalling=False,
@@ -99,7 +99,7 @@ class TeamsAppGenerator:
                    supportsFiles=False)
         manifest.update(dict(bots=[bot, ]))
         # WebAppInfo
-        web_app_info = dict(id=AppConfig.APP_ID, resource="")
+        web_app_info = dict(id=AppConfig.CLIENT_ID, resource="")
         manifest.update(dict(webApplicationInfo=web_app_info))
 
         # Valid domains
