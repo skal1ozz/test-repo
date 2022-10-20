@@ -18,7 +18,8 @@ class TeamsAppConfig:
     manifest = os.path.join(teams_app_items, "manifest,json")
     image_192x192 = os.path.join(teams_app_items, "color_192x192.png")
     image_32x32 = os.path.join(teams_app_items, "outline_32x32.png")
-    zip_file = os.path.join(teams_app_items, "app.zip")
+    zip_name = "app.zip"
+    zip_file = os.path.join(teams_app_items, zip_name)
 
 
 class TaskModuleConfig:

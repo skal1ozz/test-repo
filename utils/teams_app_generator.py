@@ -1,4 +1,5 @@
 """ Teams App Generator """
+import asyncio
 import json
 import os
 from zipfile import ZipFile, ZIP_DEFLATED
@@ -87,8 +88,8 @@ class TeamsAppGenerator:
         return TeamsAppConfig.manifest
 
     @staticmethod
-    def get_zip():
-        """ Generate the app """
+    def generate_zip_bl():
+        """ Generate zip blocking """
         TeamsAppGenerator.gen_manifest()
         with ZipFile(TeamsAppConfig.zip_file, "w", ZIP_DEFLATED) as zip_file:
             for file in [TeamsAppConfig.manifest,
@@ -96,3 +97,9 @@ class TeamsAppGenerator:
                          TeamsAppConfig.image_192x192]:
                 file_name = os.path.basename(file)
                 zip_file.write(file, arcname=file_name)
+
+    @staticmethod
+    async def generate_zip():
+        """ Generate the app """
+        io_loop = asyncio.get_event_loop()
+        await io_loop.run_in_executor(None, TeamsAppGenerator.generate_zip_bl)

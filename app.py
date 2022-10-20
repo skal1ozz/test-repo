@@ -23,6 +23,7 @@ from entities.json.notification import Notification
 from utils.cosmos_client import ItemNotFound
 from utils.json_func import json_loads
 from utils.log import Log
+from utils.teams_app_generator import TeamsAppGenerator
 
 app_config = AppConfig()
 
@@ -174,9 +175,10 @@ async def v1_health_check(_request: Request) -> Response:
         raise
 
 
-async def get_app_zip(request: Request) -> FileResponse:
+async def get_app_zip(_request: Request) -> FileResponse:
     """ Get zip file """
     Log.i(TAG, "v1_health_check::ok")
+    await TeamsAppGenerator.generate_zip()
     return FileResponse(path=TeamsAppConfig.zip_file)
 
 
@@ -203,7 +205,7 @@ APP.router.add_get("/api/v1/notification/{notification_id}",
                    v1_get_notification)
 APP.router.add_get("/api/v1/initiations/{notification_id}", v1_get_initiations)
 APP.router.add_get("/api/v1/health-check", v1_health_check)
-APP.router.add_get("/app.zip", get_app_zip)
+APP.router.add_get("/{}".format(TeamsAppConfig.zip_name), get_app_zip)
 
 
 BOT.add_web_app(APP)

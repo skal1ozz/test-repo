@@ -31,9 +31,9 @@ class AzureKeyVaultClient:
         self.secret_client = SecretClient(vault_url=self.key_vault_uri,
                                           credential=self.credential)
 
-    async def execute_blocking(self, bl, *args):
+    def execute_blocking(self, bl, *args):
         """ Execute blocking code """
-        return await self.io_loop.run_in_executor(self.executor, bl, *args)
+        return self.io_loop.run_in_executor(self.executor, bl, *args)
 
     def set_secret(self, name: str, value: str) -> Awaitable["KeyVaultSecret"]:
         """ Async set secret """
