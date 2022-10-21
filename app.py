@@ -199,7 +199,7 @@ async def v1_auth(request: Request) -> Response:
         body = await request.json()
     else:
         return Response(status=HTTPStatus.UNSUPPORTED_MEDIA_TYPE)
-    admin_user = AdminUser.Schema(exclude=EXCLUDE).load(body)
+    admin_user = AdminUser.Schema().load(body)
     if admin_user.login and admin_user.password:
         result = await TOKEN_HELPER.do_auth(admin_user)
         if result is not None:

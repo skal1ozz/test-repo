@@ -1,5 +1,5 @@
 """ Camel Case schema implementation """
-from marshmallow import Schema, fields
+from marshmallow import Schema, fields, EXCLUDE
 
 
 def camelcase(s):
@@ -16,3 +16,7 @@ class CamelCaseSchema(Schema):
     def on_bind_field(self, field_name, field_obj):
         """ On bind field callback """
         field_obj.data_key = camelcase(field_obj.data_key or field_name)
+
+    class Meta:
+        """ Meta config """
+        unknown = EXCLUDE
