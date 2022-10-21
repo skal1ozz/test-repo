@@ -5,11 +5,21 @@ from azure.cosmos import PartitionKey
 
 from utils.azure_key_vault_client import AzureKeyVaultClient
 from utils.cosmos_client import CosmosClient
-
+from utils.token_helper import TokenHelper
 
 PROJECT_ROOT_PATH = os.path.dirname(os.path.abspath("__file__"))
 ASSETS_PATH = os.path.join(PROJECT_ROOT_PATH, "assets")
 CARDS_PATH = os.path.join(ASSETS_PATH, "cards")
+
+
+class Auth:
+    """ Auth type """
+    RS256 = "RS256"
+    HS256 = "HS256"
+    CURRENT = RS256
+
+    ADMIN_LOGIN_SECRET = "adminLogin"
+    ADMIN_PASSW_SECRET = "adminPassword"
 
 
 class TeamsAppConfig:
@@ -86,3 +96,4 @@ class CosmosDBConfig:
 COSMOS_CLIENT = CosmosClient(CosmosDBConfig.HOST, CosmosDBConfig.KEY)
 KEY_VAULT_CLIENT = AzureKeyVaultClient(AppConfig.CLIENT_ID,
                                        AppConfig.KEY_VAULT)
+TOKEN_HELPER = TokenHelper(KEY_VAULT_CLIENT)

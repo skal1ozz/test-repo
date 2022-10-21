@@ -2,6 +2,7 @@
 import asyncio
 import random
 from concurrent.futures.thread import ThreadPoolExecutor
+from datetime import datetime, timedelta
 from typing import Awaitable
 
 # noinspection PyPackageRequirements
@@ -40,6 +41,14 @@ class AzureKeyVaultClient:
         return self.execute_blocking(self.secret_client.set_secret, name,
                                      value)
 
+    def get_secret_bl(self, name: str) -> "KeyVaultSecret":
+        """ Get secret blocking """
+        return self.secret_client.get_secret(name)
+
+    def set_secret_bl(self, name: str, value: str) -> "KeyVaultSecret":
+        """ Get secret blocking """
+        return self.secret_client.set_secret(name, value)
+
     def get_secret(self, name: str) -> Awaitable["KeyVaultSecret"]:
         """ Async get secret """
         return self.execute_blocking(self.secret_client.get_secret, name)
@@ -52,17 +61,29 @@ class AzureKeyVaultClient:
         """ Async create key """
         return self.execute_blocking(self.key_client.create_rsa_key, name)
 
-    async def get_random_key_bl(self) -> KeyVaultKey:
+    def get_or_create_random_key_bl(self, quantity=10) -> KeyVaultKey:
+        """ Get or Create random key """
+        random_key = None
+        try:
+            random_key = self.get_random_key_bl()
+        except IndexError:
+            # create keys here
+            for _ in range(quantity):
+                name = "%i" % (datetime.now().timestamp() * 1000000)
+                expires_on = datetime.now() + timedelta(days=7)
+                random_key = self.key_client.create_rsa_key(
+                    name, expires_on=expires_on
+                )
+        return random_key
+
+    def get_random_key_bl(self) -> KeyVaultKey:
         """ Blocking get random key """
-        keys = await self.execute_blocking(
-            self.key_client.list_properties_of_keys
-        )
+        keys = self.key_client.list_properties_of_keys()
         all_keys = []
         for key in keys:
             all_keys.append(key)
         random_key = random.choice(all_keys)
-        return await self.execute_blocking(self.key_client.get_key,
-                                           random_key.name)
+        return self.key_client.get_key(random_key.name)
 
     def get_random_key(self) -> Awaitable["KeyVaultKey"]:
         """ Async get random key """

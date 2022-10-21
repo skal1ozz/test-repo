@@ -5,6 +5,7 @@ import traceback
 from datetime import datetime
 from http import HTTPStatus
 
+import marshmallow_dataclass as m_d
 from aiohttp import web
 from aiohttp.web import Request, Response, json_response
 from aiohttp.web_fileresponse import FileResponse
@@ -18,10 +19,12 @@ from marshmallow import EXCLUDE
 
 from bots import TeamsMessagingExtensionsActionPreviewBot
 from bots.exceptions import ConversationNotFound, DataParsingError
-from config import AppConfig, COSMOS_CLIENT, KEY_VAULT_CLIENT, TeamsAppConfig
+from config import AppConfig, COSMOS_CLIENT, KEY_VAULT_CLIENT, TeamsAppConfig, \
+    TOKEN_HELPER
+from entities.json.admin_user import AdminUser
 from entities.json.notification import Notification
 from utils.cosmos_client import ItemNotFound
-from utils.json_func import json_loads
+from utils.json_func import json_loads, json_dumps
 from utils.log import Log
 from utils.teams_app_generator import TeamsAppGenerator
 
@@ -155,21 +158,14 @@ async def v1_messages(request: Request) -> Response:
 
 async def v1_health_check(_request: Request) -> Response:
     """ Health check """
-    # TODO(s1z): Add checks here. DB, etc.
-    Log.i(TAG, "v1_health_check::ok")
-    key = None
-    container = None
     try:
-        container = await COSMOS_CLIENT.get_conversations_container()
-        data = (await KEY_VAULT_CLIENT.get_secret("adminLogin")).value
-        key = await KEY_VAULT_CLIENT.create_key("pumpalot")
-        encrypted_data = await KEY_VAULT_CLIENT.encrypt(key, b"hello")
-        decrypted_data = await KEY_VAULT_CLIENT.decrypt(key, encrypted_data)
-        return Response(
-            body=json.dumps(dict(data=decrypted_data.decode("utf-8"))),
-            status=HTTPStatus.OK,
-            content_type="application/json"
-        )
+        _container = await COSMOS_CLIENT.get_conversations_container()
+        _data = (await KEY_VAULT_CLIENT.get_secret("adminLogin")).value
+        # key = await KEY_VAULT_CLIENT.create_key("pumpalot")
+        # encrypted_data = await KEY_VAULT_CLIENT.encrypt(key, b"hello")
+        # decrypted_data = await KEY_VAULT_CLIENT.decrypt(key, encrypted_data)
+        Log.i(TAG, "v1_health_check::ok")
+        return Response(status=HTTPStatus.OK)
     except Exception as e:
         Log.e(TAG, f"v1_health_check::error:{e}", sys.exc_info())
         raise
@@ -177,7 +173,6 @@ async def v1_health_check(_request: Request) -> Response:
 
 async def get_app_zip(_request: Request) -> FileResponse:
     """ Get zip file """
-    Log.i(TAG, "v1_health_check::ok")
     await TeamsAppGenerator.generate_zip()
     return FileResponse(path=TeamsAppConfig.zip_file)
 
@@ -198,6 +193,20 @@ async def error_middleware(request, handler):
                     body=json.dumps({"error": message}))
 
 
+async def v1_auth(request: Request) -> Response:
+    """ Admin Auth """
+    if "application/json" in request.headers["Content-Type"]:
+        body = await request.json()
+    else:
+        return Response(status=HTTPStatus.UNSUPPORTED_MEDIA_TYPE)
+    admin_user = AdminUser.Schema(exclude=EXCLUDE).load(body)
+    if admin_user.login and admin_user.password:
+        result = await TOKEN_HELPER.do_auth(admin_user)
+        if result is not None:
+            return Response(status=HTTPStatus.OK, body=json_dumps(result))
+    return Response(status=HTTPStatus.FORBIDDEN)
+
+
 APP = web.Application(middlewares=[error_middleware])
 APP.router.add_post("/api/v1/messages", v1_messages)
 APP.router.add_post("/api/v1/notification", v1_notification)
@@ -206,6 +215,7 @@ APP.router.add_get("/api/v1/notification/{notification_id}",
 APP.router.add_get("/api/v1/initiations/{notification_id}", v1_get_initiations)
 APP.router.add_get("/api/v1/health-check", v1_health_check)
 APP.router.add_get("/{}".format(TeamsAppConfig.zip_name), get_app_zip)
+APP.router.add_post("/api/v1/auth", v1_auth)
 
 
 BOT.add_web_app(APP)

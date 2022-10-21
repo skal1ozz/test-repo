@@ -24,7 +24,6 @@ from entities.json.medx import MedX, MXTypes
 from entities.json.notification import NotificationCosmos
 from utils.card_helper import CardHelper
 from utils.cosmos_client import CosmosClient, ItemNotFound
-from utils.function import get_first_or_none
 
 
 class TeamsMessagingExtensionsActionPreviewBot(TeamsActivityHandler):
