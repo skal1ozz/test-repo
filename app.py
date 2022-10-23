@@ -15,7 +15,7 @@ from botbuilder.core import (
     BotFrameworkAdapter,
 )
 from botbuilder.schema import Activity, ActivityTypes
-from marshmallow import EXCLUDE
+from marshmallow import EXCLUDE, ValidationError
 
 from bots import TeamsMessagingExtensionsActionPreviewBot
 from bots.exceptions import ConversationNotFound, DataParsingError
@@ -199,11 +199,14 @@ async def v1_auth(request: Request) -> Response:
         body = await request.json()
     else:
         return Response(status=HTTPStatus.UNSUPPORTED_MEDIA_TYPE)
-    admin_user = AdminUser.Schema().load(body)
-    if admin_user.login and admin_user.password:
-        result = await TOKEN_HELPER.do_auth(admin_user)
-        if result is not None:
-            return Response(status=HTTPStatus.OK, body=json_dumps(result))
+    try:
+        admin_user = AdminUser.Schema().load(body)
+        if admin_user.login and admin_user.password:
+            result = await TOKEN_HELPER.do_auth(admin_user)
+            if result is not None:
+                return Response(status=HTTPStatus.OK, body=json_dumps(result))
+    except ValidationError:
+        pass
     return Response(status=HTTPStatus.FORBIDDEN)
 
 
