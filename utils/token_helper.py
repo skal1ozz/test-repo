@@ -72,7 +72,7 @@ class TokenHelper:
             return dict(tokenType="Bearer",
                         expiresIn=ttl,
                         accessToken=token)
-        raise None
+        return None
 
     def do_auth(self, user: AdminUser):
         """ Perform auth async """
