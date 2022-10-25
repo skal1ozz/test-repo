@@ -146,6 +146,9 @@ class TokenHelper:
             a_type, a_value = parse_auth_header(
                 request.headers.get("Authorization")
             )
+            Log.i(__name__, "auth_headers:: headers: "
+                            "'{}'".format(request.headers))
+            Log.i(__name__, "auth_headers:: type: '{}'".format(a_type))
             if a_type == Auth.TYPE and self.is_token_valid(a_value):
                 return await f(request)
             return Response(status=HTTPStatus.FORBIDDEN)
