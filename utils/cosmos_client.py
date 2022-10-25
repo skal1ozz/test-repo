@@ -12,11 +12,13 @@ from botbuilder.core import TurnContext
 from botbuilder.schema import ChannelAccount
 from marshmallow import EXCLUDE
 
+from config import AppConfig
 from entities.json.acknowledge import Acknowledge
 from entities.json.acknowledge_schema import AcknowledgeSchema
 from entities.json.camel_case_mixin import timestamp_factory
 from entities.json.conversation_reference import ConversationReference
 from entities.json.initiation import Initiation
+from entities.json.medx import MedX
 from entities.json.notification import NotificationCosmos
 
 
@@ -114,8 +116,8 @@ class CosmosClient:
 
         return await self.execute_blocking(bl)
 
-    async def get_acknowledge_items(self, notification_id)\
-            -> List[Acknowledge]:
+    async def get_acknowledge_items(self, notification_id: str,
+                                    _tenant_id: str) -> List[Acknowledge]:
         """ Get Acknowledge Items """
         container = await self.get_acknowledges_container()
 
@@ -263,12 +265,13 @@ class CosmosClient:
             CosmosDBConfig.Initiations.PARTITION_KEY
         )
 
-    async def create_acknowledge(self, notification_id: str,
+    async def create_acknowledge(self, notification_id: str, tenant_id: str,
                                  account: ChannelAccount) -> Dict[str, Any]:
         """ Add acknowledge to the DB """
         container = await self.get_acknowledges_container()
         notification = AcknowledgeSchema().dump(dict(
             notification_id=notification_id,
+            tenant_id=tenant_id or AppConfig.TENANT_ID,
             username=account.name,
             user_aad_id=account.aad_object_id,
             timestamp=timestamp_factory()
@@ -280,30 +283,32 @@ class CosmosClient:
         """ Get Acknowledge object """
         try:
             container = await self.get_acknowledges_container()
-            items = await self.query_items(container, notification_id)
-            return Acknowledge.get_schema(unknown=EXCLUDE).load(items)
+            # items = await self.query_items(container, notification_id)
+            # return Acknowledge.get_schema(unknown=EXCLUDE).load(items)
         except ItemNotFound:
             return None
 
-    async def get_conversation(self, conversation_id: str)\
+    async def get_conversation(self, notification: NotificationCosmos)\
             -> ConversationReference:
         """ Get Conversation Reference """
         from config import AppConfig
 
         container = await self.get_conversations_container()
-        item = await self.get_item(container, conversation_id,
-                                   AppConfig.TENANT_ID)
+        item = await self.get_item(
+            container, notification.destination,
+            notification.tenant_id or AppConfig.TENANT_ID
+        )
         return ConversationReference.get_schema(unknown=EXCLUDE)\
                                     .load(item).to_ms_reference()
 
-    async def get_notification(self, notification_id: str)\
+    async def get_notification(self, notification_id: str, tenant_id: str)\
             -> NotificationCosmos:
         """ Get Notification """
         from config import AppConfig
 
         container = await self.get_notifications_container()
         item = await self.get_item(container, notification_id,
-                                   AppConfig.TENANT_ID)
+                                   tenant_id or AppConfig.TENANT_ID)
         return NotificationCosmos.get_schema(unknown=EXCLUDE).load(item)
 
     async def create_conversation_reference(self, turn_context: TurnContext)\
@@ -331,12 +336,13 @@ class CosmosClient:
                 return
             raise SaveItemError(e.http_error_message)
 
-    async def create_initiation(self, initiator: str,
-                                notification_id: str) -> None:
+    async def create_initiation(self, initiator: str, mx: MedX) -> None:
         """ Save initiation """
+        from config import AppConfig
         container = await self.get_initiation_container()
         initiation = Initiation(initiator=initiator,
                                 timestamp=timestamp_factory(),
-                                notification_id=notification_id)
+                                notification_id=mx.notification_id,
+                                tenant_id=mx.tenant_id or AppConfig.TENANT_ID)
         data = Initiation.get_schema().dump(initiation)
         await self.create_item(container, body=data)

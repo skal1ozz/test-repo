@@ -21,3 +21,4 @@ class MedX(CamelCaseMixin):
     """ MedX data """
     type: str
     notification_id: Optional[str]
+    tenant_id: Optional[str]

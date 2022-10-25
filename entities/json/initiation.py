@@ -11,5 +11,6 @@ class Initiation(CamelCaseMixin):
     """ Notification Dataclass """
     initiator: str  # User name
     notification_id: str  # Notification ID
+    tenant_id: str  # Tenant ID
     timestamp: Optional[int] = field(default=None)
     id: Optional[str] = field(default=None)  # Unique Initiation ID
