@@ -12,7 +12,6 @@ from botbuilder.core import TurnContext
 from botbuilder.schema import ChannelAccount
 from marshmallow import EXCLUDE
 
-from config import AppConfig
 from entities.json.acknowledge import Acknowledge
 from entities.json.acknowledge_schema import AcknowledgeSchema
 from entities.json.camel_case_mixin import timestamp_factory
@@ -268,6 +267,8 @@ class CosmosClient:
     async def create_acknowledge(self, notification_id: str, tenant_id: str,
                                  account: ChannelAccount) -> Dict[str, Any]:
         """ Add acknowledge to the DB """
+        from config import AppConfig
+
         container = await self.get_acknowledges_container()
         notification = AcknowledgeSchema().dump(dict(
             notification_id=notification_id,
