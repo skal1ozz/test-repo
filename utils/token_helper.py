@@ -18,11 +18,6 @@ from utils.json_func import json_dumps, json_loads
 from utils.log import Log
 
 
-class MimeTypes:
-    """ Token Types selection """
-    JWT = "jwt"
-
-
 class TokenHelper:
     """ Token Helper implementation """
 
@@ -60,7 +55,7 @@ class TokenHelper:
         date = datetime.utcnow() + timedelta(seconds=ttl_seconds)
         exp = timegm(date.utctimetuple())
         alg = Auth.ALGORITHM
-        jwt_head = dict(typ=MimeTypes.JWT, alg=alg)
+        jwt_head = dict(typ=Auth.TOKEN_TYPE, alg=alg)
         jwt_body = dict(sub=login, exp=exp)
         token_signed = self.sign_token_bl(jwt_head, jwt_body, alg)
         return token_signed
