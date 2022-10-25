@@ -74,6 +74,7 @@ ADAPTER.on_turn_error = on_error
 BOT = TeamsMessagingExtensionsActionPreviewBot(app_settings, ADAPTER)
 
 
+@TOKEN_HELPER.is_auth
 async def v1_get_initiations(request: Request) -> Response:
     """ Get Initiations by Notification ID """
     # noinspection PyBroadException
@@ -92,6 +93,7 @@ async def v1_get_initiations(request: Request) -> Response:
     return Response(status=HTTPStatus.BAD_REQUEST)
 
 
+@TOKEN_HELPER.is_auth
 async def v1_get_notification(request: Request) -> Response:
     """ Get Notification by ID """
     # noinspection PyBroadException
@@ -114,6 +116,7 @@ async def v1_get_notification(request: Request) -> Response:
     return Response(status=HTTPStatus.BAD_REQUEST)
 
 
+@TOKEN_HELPER.is_auth
 async def v1_notification(request: Request) -> Response:
     """ Notify channel with the link """
     # todo(s1z): add auth

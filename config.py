@@ -14,9 +14,15 @@ CARDS_PATH = os.path.join(ASSETS_PATH, "cards")
 
 class Auth:
     """ Auth type """
+    TYPE = "jwt"
+
     RS256 = "RS256"
     HS256 = "HS256"
     CURRENT = RS256
+
+    BEARER = "Bearer"
+
+    ALG = RS256
 
     ADMIN_LOGIN_SECRET = "adminLogin"
     ADMIN_PASSW_SECRET = "adminPassword"

@@ -1,6 +1,6 @@
 """ Handy Functions """
 from base64 import b64encode, b64decode
-from typing import List, Optional, Dict
+from typing import List, Optional, Dict, Tuple
 
 
 def get_first_or_none(items: List) -> Optional[Dict[str, any]]:
@@ -8,6 +8,18 @@ def get_first_or_none(items: List) -> Optional[Dict[str, any]]:
     if len(items) > 0:
         return items[0]
     return None
+
+
+def parse_auth_header(header: Optional[str]) -> Tuple[Optional[str],
+                                                      Optional[str]]:
+    """ Parse Authorization header and return Type, Value or None """
+    if isinstance(header, str):
+        try:
+            t, v = header.split(":")[:2]
+            return t, v
+        except ValueError:
+            pass
+    return None, None
 
 
 def b64encode_str(data: str, encoding="utf-8") -> str:

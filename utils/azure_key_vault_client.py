@@ -53,8 +53,12 @@ class AzureKeyVaultClient:
         """ Async get secret """
         return self.execute_blocking(self.secret_client.get_secret, name)
 
+    def get_key_bl(self, name: str) -> "KeyVaultKey":
+        """ Get key, blocking """
+        return self.key_client.get_key(name)
+
     def get_key(self, name: str) -> Awaitable["KeyVaultKey"]:
-        """ Async get key """
+        """ Get key, Async """
         return self.execute_blocking(self.key_client.get_key, name)
 
     def create_key(self, name: str) -> Awaitable["KeyVaultKey"]:
