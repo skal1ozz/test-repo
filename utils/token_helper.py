@@ -88,13 +88,22 @@ class TokenHelper:
         """ Check if token is Valid """
         from config import Auth
 
+        Log.d(__name__, "is_token_valid")
+
         # split first
         header_b64_str, body_b64_str, signature = token.split(".")
         token_unsigned = "{}.{}".format(header_b64_str, body_b64_str)
 
+        Log.d(__name__, "header_b64_str, body_b64_str, signature:"
+                        "{}, {}, {}".format(header_b64_str, body_b64_str,
+                                            signature))
+
         # parse
         header = json_loads(b64decode_str(header_b64_str))
         body = json_loads(b64decode_str(body_b64_str))
+
+        Log.d(__name__, "token header: {}".format(header))
+        Log.d(__name__, "token body: {}".format(body))
 
         # check fields
         token_typ = header.get("typ", None)
@@ -102,6 +111,13 @@ class TokenHelper:
         token_kid = header.get("kid", None)
         token_sub = body.get("sub", None)
         token_exp = body.get("exp", None)
+
+        Log.d(__name__, "token_typ, token_alg, token_kid,"
+                        "token_sub, token_exp: "
+                        "{}, {}, {}, {}, {}".format(token_typ, token_alg,
+                                                    token_kid, token_sub,
+                                                    token_exp))
+
         if None in [token_typ, token_alg, token_kid, token_sub, token_exp]:
             return False
 
@@ -146,8 +162,6 @@ class TokenHelper:
             a_type, a_value = parse_auth_header(
                 request.headers.get("Authorization")
             )
-            Log.i(__name__, "auth_headers:: headers: "
-                            "'{}'".format(request.headers))
             Log.i(__name__, "auth_headers:: type: '{}'".format(a_type))
             if a_type == Auth.TYPE and self.is_token_valid(a_value):
                 return await f(request)
