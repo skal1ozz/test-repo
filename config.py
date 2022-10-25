@@ -26,7 +26,7 @@ class Auth:
 
     TYPE = Types.BEARER
     ALGORITHM = Algorithms.RS256
-    TOKEN_TYPE = "jwt"
+    TOKEN_TYPE = "JWT"
 
     ADMIN_LOGIN_SECRET = "adminLogin"
     ADMIN_PASSW_SECRET = "adminPassword"

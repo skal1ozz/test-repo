@@ -131,6 +131,7 @@ class TokenHelper:
 
         # check expiration
         if datetime.utcnow().timestamp() > token_exp:
+            Log.d(__name__, "token is expired")
             return False
 
         # TODO(s1z): Cache this please
@@ -149,9 +150,13 @@ class TokenHelper:
         signature_gen = SHA256.new(token_unsigned.encode("utf-8")).digest()
         signature_encrypted = self.azure_kv.encrypt_bl(key, signature_gen)
         signature_gen = b64encode_np(signature_encrypted).decode("utf-8")
-        if signature != signature_gen:
-            return False
-        return True
+
+        Log.d(__name__, f"is equal: '{signature == signature_gen}'")
+        Log.d(__name__, f"signature_gen: '{signature_gen}'")
+        Log.d(__name__, f"signature: '{signature}'")
+        if signature == signature_gen:
+            return True
+        return False
 
     def is_auth(self, f):
         """ Is auth decorator """
