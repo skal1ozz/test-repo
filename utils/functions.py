@@ -13,9 +13,9 @@ def get_first_or_none(items: List) -> Optional[Dict[str, any]]:
 def parse_auth_header(header: Optional[str]) -> Tuple[Optional[str],
                                                       Optional[str]]:
     """ Parse Authorization header and return Type, Value or None """
-    if isinstance(header, str):
+    if isinstance(header, (str, bytes)):
         try:
-            t, v = header.split(":")[:2]
+            t, v = header.split(" ")[:2]
             return t, v
         except ValueError:
             pass
