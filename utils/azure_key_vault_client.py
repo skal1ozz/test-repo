@@ -8,7 +8,8 @@ from typing import Awaitable
 # noinspection PyPackageRequirements
 from azure.keyvault.keys import KeyClient, KeyVaultKey
 # noinspection PyPackageRequirements
-from azure.keyvault.keys.crypto import CryptographyClient, EncryptionAlgorithm
+from azure.keyvault.keys.crypto import CryptographyClient, EncryptionAlgorithm, \
+    SignatureAlgorithm
 # noinspection PyPackageRequirements
 from azure.keyvault.secrets import SecretClient, KeyVaultSecret
 # noinspection PyPackageRequirements
@@ -102,6 +103,18 @@ class AzureKeyVaultClient:
         cipher = CryptographyClient(key, self.credential)
         result = cipher.encrypt(EncryptionAlgorithm.rsa_oaep, data)
         return result.ciphertext
+
+    def sign_bl(self, key: KeyVaultKey, algorithm: SignatureAlgorithm,
+                data: bytes) -> bytes:
+        """ Sign data, blocking """
+        cipher = CryptographyClient(key, self.credential)
+        return cipher.sign(algorithm, data).signature
+
+    def verify_bl(self, key: KeyVaultKey, algorithm: SignatureAlgorithm,
+                  digest: bytes, signature: bytes) -> bool:
+        """ Verify signature, blocking """
+        cipher = CryptographyClient(key, self.credential)
+        return cipher.verify(algorithm, digest, signature).is_valid
 
     def decrypt_bl(self, key: KeyVaultKey, data: bytes) -> bytes:
         """ Decrypt data """

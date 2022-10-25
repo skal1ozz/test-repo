@@ -13,7 +13,7 @@ from azure.core.exceptions import ResourceNotFoundError, HttpResponseError
 from entities.json.admin_user import AdminUser
 from utils.azure_key_vault_client import AzureKeyVaultClient
 from utils.functions import b64encode_str, b64encode_np, parse_auth_header, \
-    b64decode_str
+    b64decode_str, b64decode_np
 from utils.json_func import json_dumps, json_loads
 from utils.log import Log
 
@@ -39,9 +39,9 @@ class TokenHelper:
 
             token_unsigned = "{}.{}".format(b64encode_str(json_dumps(header)),
                                             b64encode_str(json_dumps(body)))
-            signature = SHA256.new(token_unsigned.encode("utf-8")).digest()
-            signature_encrypted = self.azure_kv.encrypt_bl(key, signature)
-            signature_b64 = b64encode_np(signature_encrypted).decode("utf-8")
+            signature = self.azure_kv.sign_bl(key, Auth.Algorithms.RS256,
+                                              token_unsigned.encode("utf-8"))
+            signature_b64 = b64encode_np(signature).decode("utf-8")
             return "{}.{}".format(token_unsigned, signature_b64)
         elif alg == Auth.Algorithms.HS256:
             """ HMAC with SHA-256 (HS256) """
@@ -86,12 +86,12 @@ class TokenHelper:
         Log.d(__name__, "is_token_valid")
 
         # split first
-        header_b64_str, body_b64_str, signature = token.split(".")
+        header_b64_str, body_b64_str, signature_b64_str = token.split(".")
         token_unsigned = "{}.{}".format(header_b64_str, body_b64_str)
 
         Log.d(__name__, "header_b64_str, body_b64_str, signature:"
                         "{}, {}, {}".format(header_b64_str, body_b64_str,
-                                            signature))
+                                            signature_b64_str))
 
         # parse
         header = json_loads(b64decode_str(header_b64_str))
@@ -142,14 +142,12 @@ class TokenHelper:
             Log.e(__name__, "Key not found: '{}'".format(token_kid))
             return False
 
-        signature_gen = SHA256.new(token_unsigned.encode("utf-8")).digest()
-        signature_encrypted = self.azure_kv.encrypt_bl(key, signature_gen)
-        signature_gen = b64encode_np(signature_encrypted).decode("utf-8")
-
-        Log.d(__name__, f"is equal: '{signature == signature_gen}'")
-        Log.d(__name__, f"signature_gen: '{signature_gen}'")
-        Log.d(__name__, f"signature: '{signature}'")
-        if signature == signature_gen:
+        signature = b64decode_np(signature_b64_str.encode("utf-8"))
+        is_valid = self.azure_kv.verify_bl(key, Auth.ALGORITHM,
+                                           token_unsigned.encode("utf-8"),
+                                           signature)
+        Log.d(__name__, f"is_valid: {is_valid}")
+        if is_valid:
             return True
         return False
 
