@@ -86,10 +86,10 @@ async def v1_get_initiations(request: Request) -> Response:
                                id=init.id) for init in inits])
         return Response(body=json.dumps(data), status=HTTPStatus.OK)
     except ItemNotFound as e:
-        Log.e(TAG, "v1_get_initiations::item not found", e)
+        print("ItemNotFound:", e)
         return Response(status=HTTPStatus.NOT_FOUND)
     except Exception as e:
-        Log.e(TAG, "v1_get_initiations::exception", sys.exc_info())
+        print("error:", e)
     return Response(status=HTTPStatus.BAD_REQUEST)
 
 
@@ -111,8 +111,8 @@ async def v1_get_notification(request: Request) -> Response:
     except ItemNotFound as e:
         Log.e(TAG, "v1_get_notification::item not found", e)
         return Response(status=HTTPStatus.NOT_FOUND)
-    except Exception:
-        Log.e(TAG, exc_info=sys.exc_info())
+    except Exception as e:
+        Log.e(TAG, exc_info=e)
     return Response(status=HTTPStatus.BAD_REQUEST)
 
 
