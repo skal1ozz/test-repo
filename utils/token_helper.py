@@ -39,8 +39,9 @@ class TokenHelper:
 
             token_unsigned = "{}.{}".format(b64encode_str(json_dumps(header)),
                                             b64encode_str(json_dumps(body)))
+            digest = SHA256.new(token_unsigned.encode("utf-8")).digest()
             signature = self.azure_kv.sign_bl(key, Auth.Algorithms.RS256,
-                                              token_unsigned.encode("utf-8"))
+                                              digest)
             signature_b64 = b64encode_np(signature).decode("utf-8")
             return "{}.{}".format(token_unsigned, signature_b64)
         elif alg == Auth.Algorithms.HS256:
@@ -143,8 +144,8 @@ class TokenHelper:
             return False
 
         signature = b64decode_np(signature_b64_str.encode("utf-8"))
-        is_valid = self.azure_kv.verify_bl(key, Auth.ALGORITHM,
-                                           token_unsigned.encode("utf-8"),
+        digest = SHA256.new(token_unsigned.encode("utf-8")).digest()
+        is_valid = self.azure_kv.verify_bl(key, Auth.ALGORITHM, digest,
                                            signature)
         Log.d(__name__, f"is_valid: {is_valid}")
         if is_valid:
