@@ -83,13 +83,13 @@ class TeamsMessagingExtensionsActionPreviewBot(TeamsActivityHandler):
 
         # reset parameters
         notification.id = uuid.uuid4().__str__()
-        notification.tenant_id = notification.tenant_id or AppConfig.TENANT_ID
+        notification.tenant_id = AppConfig.TENANT_ID
 
         async def routine():
             """ async routine """
             try:
                 reference = await self.cosmos_client.get_conversation(
-                    notification
+                    notification.destination
                 )
             except ItemNotFound:
                 future.set_exception(ConversationNotFound("not found"))
@@ -142,13 +142,12 @@ class TeamsMessagingExtensionsActionPreviewBot(TeamsActivityHandler):
             try:
                 account = turn_context.activity.from_property
                 acks = await self.cosmos_client.get_acknowledge_items(
-                    mx.notification_id, mx.tenant_id
+                    mx.notification_id
                 )
                 if len(acks) > 0:
                     return
 
                 await self.cosmos_client.create_acknowledge(mx.notification_id,
-                                                            mx.tenant_id,
                                                             account)
                 notification = await self.cosmos_client.get_notification(
                     mx.notification_id
@@ -187,12 +186,12 @@ class TeamsMessagingExtensionsActionPreviewBot(TeamsActivityHandler):
         return await self.on_mx_task_default(turn_context)
 
     async def on_mx_task_notification_url(self, turn_context: TurnContext,
-                                          mx: MedX) -> TaskModuleResponse:
+                                          notification_id: str) \
+            -> TaskModuleResponse:
         """ On MX Task fetch Notification URL """
         try:
             notification = await self.cosmos_client.get_notification(
-                notification_id=mx.notification_id,
-                tenant_id=mx.tenant_id or AppConfig.TENANT_ID
+                notification_id=notification_id
             )
             link = notification.url.link
             if link is not None:
@@ -239,6 +238,8 @@ class TeamsMessagingExtensionsActionPreviewBot(TeamsActivityHandler):
             # 1. save action to DB
             # 2. return URL
             initiator = turn_context.activity.from_property.name
-            await self.cosmos_client.create_initiation(initiator, mx)
-            return await self.on_mx_task_notification_url(turn_context, mx)
+            await self.cosmos_client.create_initiation(initiator,
+                                                       mx.notification_id)
+            return await self.on_mx_task_notification_url(turn_context,
+                                                          mx.notification_id)
         return await self.on_mx_task_default(turn_context)

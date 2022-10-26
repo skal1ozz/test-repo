@@ -24,7 +24,6 @@ class Notification(CamelCaseMixin):
     title: Optional[str] = field(default=None)
     url: Optional[NotificationUrl] = field(default_factory=NotificationUrl)
     acknowledge: Optional[bool] = field(default=False)
-    tenant_id: Optional[str] = field(default=None)
 
     def to_db(self) -> "NotificationCosmos":
         """ Create NotificationCosmos """
@@ -34,8 +33,7 @@ class Notification(CamelCaseMixin):
                                   message=self.message,
                                   title=self.title,
                                   url=self.url,
-                                  acknowledge=self.acknowledge,
-                                  tenant_id=self.tenant_id)
+                                  acknowledge=self.acknowledge)
 
 
 # noinspection PyDataclass
@@ -44,4 +42,5 @@ class NotificationCosmos(Notification):
     """ Notification Dataclass """
     # We have to add these fields
     id: Optional[str] = field(default=None)
+    tenant_id: Optional[str] = field(default=None)
     timestamp: Optional[int] = field(default_factory=timestamp_factory)
