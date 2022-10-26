@@ -169,6 +169,11 @@ class TeamsMessagingExtensionsActionPreviewBot(TeamsActivityHandler):
 
     async def on_message_activity(self, turn_context: TurnContext) -> None:
         """ on message activity """
+        if turn_context.activity.conversation.tenant_id != AppConfig.TENANT_ID:
+            await turn_context.send_activity("Sorry, you dont have rights "
+                                             "to communicate with this bot "
+                                             "from your tenant")
+            return
         if turn_context.activity.value is not None:
             return await self.handle_submit_action(turn_context)
 
