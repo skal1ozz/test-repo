@@ -1,5 +1,6 @@
 """ Cosmos Client implementation """
 import asyncio
+import sys
 import uuid
 from concurrent import futures
 from typing import Any, Dict, Optional, Union, List
@@ -18,6 +19,7 @@ from entities.json.camel_case_mixin import timestamp_factory
 from entities.json.conversation_reference import ConversationReference
 from entities.json.initiation import Initiation
 from entities.json.notification import NotificationCosmos
+from utils.log import Log
 
 
 class CosmosClientException(Exception):
@@ -84,10 +86,10 @@ class CosmosClient:
         def bl() -> ContainerProxy:
             """ Get Notifications container blocking """
             try:
+                return db.get_container_client(container_id)
+            except exceptions.CosmosResourceNotFoundError:
                 return db.create_container(container_id, partition_key,
                                            **kwargs)
-            except exceptions.CosmosResourceExistsError:
-                return db.get_container_client(container_id)
 
         return await self.execute_blocking(bl)
 
@@ -311,6 +313,7 @@ class CosmosClient:
         """ Save Conversation Regerence """
         from config import CosmosDBConfig
 
+        Log.i(__name__, "create_conversation_reference")
         activity = turn_context.activity
         reference = TurnContext.get_conversation_reference(activity)
         reference_json = ConversationReference.get_schema().dump(reference)
@@ -327,6 +330,8 @@ class CosmosClient:
         try:
             return await self.execute_blocking(bl)
         except exceptions.CosmosHttpResponseError as e:
+            Log.i(__name__, "create_conversation_reference::error:",
+                  sys.exc_info())
             if e.status_code == 409:  # Already exists
                 return
             raise SaveItemError(e.http_error_message)
