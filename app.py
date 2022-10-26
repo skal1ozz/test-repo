@@ -162,8 +162,8 @@ async def v1_messages(request: Request) -> Response:
 async def v1_health_check(_request: Request) -> Response:
     """ Health check """
     try:
-        _container = await COSMOS_CLIENT.get_conversations_container()
-        _data = (await KEY_VAULT_CLIENT.get_secret("adminLogin")).value
+        # _container = await COSMOS_CLIENT.get_conversations_container()
+        # _data = (await KEY_VAULT_CLIENT.get_secret("adminLogin")).value
         # key = await KEY_VAULT_CLIENT.create_key("pumpalot")
         # encrypted_data = await KEY_VAULT_CLIENT.encrypt(key, b"hello")
         # decrypted_data = await KEY_VAULT_CLIENT.decrypt(key, encrypted_data)
