@@ -317,7 +317,6 @@ class CosmosClient:
         activity = turn_context.activity
         reference = TurnContext.get_conversation_reference(activity)
         reference_json = ConversationReference.get_schema().dump(reference)
-        # reference_dict = ConversationReferenceSchema().dump(reference)
         container = await self.get_conversations_container()
         reference_json.update({
             CosmosDBConfig.Conversations.PK: reference.conversation.id

@@ -71,7 +71,21 @@ class CardHelper:
                                  }
                              }}]
             })
-
+            card_body.append({
+                "type": "Container",
+                "items": [
+                    {
+                        "type": "ActionSet",
+                        "actions": [
+                            {
+                                "type": "Action.OpenUrl",
+                                "title": "Open in Browser",
+                                "url": url
+                            }
+                        ]
+                    }
+                ]
+            })
         # ======================= URL =========================================
         if acknowledge is not None and acknowledge and acknowledged_by is None:
             card_body.append({
