@@ -80,7 +80,7 @@ class CardHelper:
                             {
                                 "type": "Action.OpenUrl",
                                 "title": "Open in Browser",
-                                "url": url
+                                "url": url.link
                             }
                         ]
                     }
