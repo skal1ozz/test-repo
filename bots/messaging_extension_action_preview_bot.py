@@ -8,7 +8,8 @@ from urllib.parse import urlparse, parse_qsl, urlencode
 from aiohttp.web_app import Application
 from botbuilder.core import (TurnContext, CardFactory, BotFrameworkAdapter,
                              BotFrameworkAdapterSettings)
-from botbuilder.schema import Activity, ActivityTypes, ConversationReference
+from botbuilder.schema import Activity, ActivityTypes, ConversationReference, \
+    ChannelAccount
 from botbuilder.schema.teams import (TaskModuleContinueResponse,
                                      TaskModuleTaskInfo, TaskModuleResponse,
                                      TaskModuleRequest)
@@ -129,6 +130,19 @@ class TeamsMessagingExtensionsActionPreviewBot(TeamsActivityHandler):
         params.update(dict(channelId=channel_id))
         # noinspection PyProtectedMember
         return parsed_url._replace(query=urlencode(params)).geturl()
+
+    async def on_members_added_activity(self, members_added: [ChannelAccount],
+                                        turn_context: TurnContext):
+        """ Executed when user installs the bot """
+        await self.cosmos_client.create_conversation_reference(turn_context)
+        for member in members_added:
+            if member.id != turn_context.activity.recipient.id:
+                await turn_context.send_activity(
+                    "Hello! Thank you for installing {}.\n"
+                    "Use 'help' command for more info.".format(
+                        AppConfig.BOT_NAME
+                    )
+                )
 
     async def on_conversation_update_activity(self, turn_context: TurnContext):
         """ On update conversation """
