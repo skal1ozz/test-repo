@@ -60,4 +60,4 @@ jobs:
         with:
           app-name: 'managed-cake-bot'
           slot-name: 'Production'
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_2087B0A9FE6446FDAE1E999C0E47E3B2 }}
+          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_F18E2779F0184583897869BFE7419B45 }}
