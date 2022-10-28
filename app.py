@@ -20,7 +20,7 @@ from marshmallow import EXCLUDE, ValidationError
 from bots import TeamsMessagingExtensionsActionPreviewBot
 from bots.exceptions import ConversationNotFound, DataParsingError
 from config import AppConfig, COSMOS_CLIENT, TeamsAppConfig, TOKEN_HELPER, \
-    LOG_FILE
+    CosmosDBConfig
 from entities.json.admin_user import AdminUser
 from entities.json.notification import Notification
 from utils.cosmos_client import ItemNotFound
@@ -212,24 +212,55 @@ async def v1_auth(request: Request) -> Response:
     return Response(status=HTTPStatus.FORBIDDEN)
 
 
-APP = web.Application(middlewares=[error_middleware])
-APP.router.add_post("/api/v1/messages", v1_messages)
-APP.router.add_post("/api/v1/notification", v1_notification)
-APP.router.add_get("/api/v1/notification/{notification_id}",
-                   v1_get_notification)
-APP.router.add_get("/api/v1/initiations/{notification_id}", v1_get_initiations)
-APP.router.add_get("/api/v1/health-check", v1_health_check)
-APP.router.add_get("/{}".format(TeamsAppConfig.zip_name), get_app_zip)
-APP.router.add_post("/api/v1/auth", v1_auth)
+async def init_db_containers():
+    """ To speed up the process we have to create containers first """
+    COSMOS_CLIENT.create_container(
+        CosmosDBConfig.Conversations.DATABASE,
+        CosmosDBConfig.Conversations.CONTAINER,
+        CosmosDBConfig.Conversations.PARTITION_KEY
+    )
+    COSMOS_CLIENT.create_container(
+        CosmosDBConfig.Notifications.DATABASE,
+        CosmosDBConfig.Notifications.CONTAINER,
+        CosmosDBConfig.Notifications.PARTITION_KEY
+    )
+    COSMOS_CLIENT.create_container(
+        CosmosDBConfig.Acknowledges.DATABASE,
+        CosmosDBConfig.Acknowledges.CONTAINER,
+        CosmosDBConfig.Acknowledges.PARTITION_KEY
+    )
+    COSMOS_CLIENT.create_container(
+        CosmosDBConfig.Initiations.DATABASE,
+        CosmosDBConfig.Initiations.CONTAINER,
+        CosmosDBConfig.Initiations.PARTITION_KEY
+    )
 
 
-BOT.add_web_app(APP)
-BOT.add_cosmos_client(COSMOS_CLIENT)
+async def app_factory(bot):
+    """ Create the app """
+
+    await init_db_containers()
+
+    app = web.Application(middlewares=[error_middleware])
+    app.router.add_post("/api/v1/messages", v1_messages)
+    app.router.add_post("/api/v1/notification", v1_notification)
+    app.router.add_get("/api/v1/notification/{notification_id}",
+                       v1_get_notification)
+    app.router.add_get("/api/v1/initiations/{notification_id}",
+                       v1_get_initiations)
+    app.router.add_get("/api/v1/health-check", v1_health_check)
+    app.router.add_get("/{}".format(TeamsAppConfig.zip_name), get_app_zip)
+    app.router.add_post("/api/v1/auth", v1_auth)
+
+    bot.add_web_app(app)
+    bot.add_cosmos_client(COSMOS_CLIENT)
+
+    return app
 
 
 if __name__ == "__main__":
     init_logging()
     try:
-        web.run_app(APP, host="0.0.0.0", port=app_config.PORT)
+        web.run_app(app_factory(BOT), host="0.0.0.0", port=app_config.PORT)
     except Exception as error:
         raise error

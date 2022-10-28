@@ -78,6 +78,21 @@ class CosmosClient:
 
         return await self.execute_blocking(bl)
 
+    async def create_container(self, database_id: str, container_id: str,
+                               partition_key: Any, **kwargs) -> ContainerProxy:
+        """ Create container """
+        db = await self.get_db(database_id)
+
+        def bl() -> ContainerProxy:
+            """ Get Notifications container blocking """
+            try:
+                return db.create_container(container_id, partition_key,
+                                           **kwargs)
+            except exceptions.CosmosResourceNotFoundError:
+                pass
+
+        return await self.execute_blocking(bl)
+
     async def get_container(self, database_id: str, container_id: str,
                             partition_key: Any, **kwargs) -> ContainerProxy:
         """ Get or create container """
@@ -85,11 +100,7 @@ class CosmosClient:
 
         def bl() -> ContainerProxy:
             """ Get Notifications container blocking """
-            try:
-                return db.get_container_client(container_id)
-            except exceptions.CosmosResourceNotFoundError:
-                return db.create_container(container_id, partition_key,
-                                           **kwargs)
+            return db.get_container_client(container_id)
 
         return await self.execute_blocking(bl)
 
