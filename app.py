@@ -1,12 +1,11 @@
 """ Bot App """
 import json
-import logging
 import sys
 import traceback
 from datetime import datetime
 from http import HTTPStatus
 
-import marshmallow_dataclass as m_d
+import marshmallow_dataclass
 from aiohttp import web
 from aiohttp.web import Request, Response, json_response
 from aiohttp.web_fileresponse import FileResponse
@@ -20,12 +19,13 @@ from marshmallow import EXCLUDE, ValidationError
 
 from bots import TeamsMessagingExtensionsActionPreviewBot
 from bots.exceptions import ConversationNotFound, DataParsingError
-from config import AppConfig, COSMOS_CLIENT, TeamsAppConfig, TOKEN_HELPER
+from config import AppConfig, COSMOS_CLIENT, TeamsAppConfig, TOKEN_HELPER, \
+    LOG_FILE
 from entities.json.admin_user import AdminUser
 from entities.json.notification import Notification
 from utils.cosmos_client import ItemNotFound
 from utils.json_func import json_loads, json_dumps
-from utils.log import Log
+from utils.log import Log, init_logging
 from utils.teams_app_generator import TeamsAppGenerator
 
 app_config = AppConfig()
@@ -85,10 +85,10 @@ async def v1_get_initiations(request: Request) -> Response:
                                timestamp=init.timestamp,
                                id=init.id) for init in inits])
         return Response(body=json.dumps(data), status=HTTPStatus.OK)
-    except ItemNotFound as e:
-        Log.e(TAG, "v1_get_initiations::item not found", e)
+    except ItemNotFound:
+        Log.e(TAG, "v1_get_initiations::item not found", sys.exc_info())
         return Response(status=HTTPStatus.NOT_FOUND)
-    except Exception as e:
+    except Exception:
         Log.e(TAG, "v1_get_initiations::exception", sys.exc_info())
     return Response(status=HTTPStatus.BAD_REQUEST)
 
@@ -119,7 +119,6 @@ async def v1_get_notification(request: Request) -> Response:
 @TOKEN_HELPER.is_auth
 async def v1_notification(request: Request) -> Response:
     """ Notify channel with the link """
-    # todo(s1z): add auth
     # noinspection PyBroadException
     try:
         request_body = await request.text()
@@ -203,7 +202,7 @@ async def v1_auth(request: Request) -> Response:
     else:
         return Response(status=HTTPStatus.UNSUPPORTED_MEDIA_TYPE)
     try:
-        admin_user = AdminUser.Schema().load(body)
+        admin_user = marshmallow_dataclass.class_schema(AdminUser)().load(body)
         if admin_user.login and admin_user.password:
             result = await TOKEN_HELPER.do_auth(admin_user)
             if result is not None:
@@ -213,9 +212,9 @@ async def v1_auth(request: Request) -> Response:
     return Response(status=HTTPStatus.FORBIDDEN)
 
 
-async def v1_log(_request: Request) -> Response:
+async def v1_log(_request: Request) -> FileResponse:
     """ Get Log """
-    return FileResponse(path="log.txt")
+    return FileResponse(path=LOG_FILE)
 
 
 APP = web.Application(middlewares=[error_middleware])
@@ -234,19 +233,8 @@ BOT.add_web_app(APP)
 BOT.add_cosmos_client(COSMOS_CLIENT)
 
 
-def init_logging(filename=None, level=None):
-    """ Init logging """
-    logging_config = {
-        "format": "%(asctime)-23s %(levelname)8s::%(filename)s::%(funcName)s: %(message)s",
-        "level": level or logging.DEBUG
-    }
-    if filename is not None:
-        logging_config["filename"] = filename
-    logging.basicConfig(**logging_config)
-
-
 if __name__ == "__main__":
-    init_logging("log.txt")
+    init_logging(filename=LOG_FILE)
     try:
         web.run_app(APP, host="0.0.0.0", port=app_config.PORT)
     except Exception as error:

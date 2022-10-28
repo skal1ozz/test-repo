@@ -6,8 +6,9 @@ import logging
 
 def init_logging(filename=None, level=None):
     """ init logging on the app level """
-    logging_config = {"format": "%(asctime)-23s %(levelname)8s: %(message)s",
-                      "level": level or logging.INFO}
+    logging_config = {"format": "%(asctime)-23s %(levelname)8s::%(filename)s::"
+                                "%(funcName)s: %(message)s",
+                      "level": level or logging.DEBUG}
     if filename is not None:
         logging_config["filename"] = filename
     logging.getLogger().handlers = []
