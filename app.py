@@ -17,7 +17,8 @@ from botbuilder.core import (
 from botbuilder.schema import Activity, ActivityTypes
 from marshmallow import EXCLUDE, ValidationError
 
-from bots import TeamsMessagingExtensionsActionPreviewBot
+from bots.messaging_extension_action_preview_bot import \
+    TeamsMessagingExtensionsActionPreviewBot
 from bots.exceptions import ConversationNotFound, DataParsingError
 from config import AppConfig, COSMOS_CLIENT, TeamsAppConfig, TOKEN_HELPER, \
     CosmosDBConfig
@@ -214,22 +215,23 @@ async def v1_auth(request: Request) -> Response:
 
 async def init_db_containers():
     """ To speed up the process we have to create containers first """
-    COSMOS_CLIENT.create_container(
+    await COSMOS_CLIENT.create_db(CosmosDBConfig.Conversations.DATABASE)
+    await COSMOS_CLIENT.create_container(
         CosmosDBConfig.Conversations.DATABASE,
         CosmosDBConfig.Conversations.CONTAINER,
         CosmosDBConfig.Conversations.PARTITION_KEY
     )
-    COSMOS_CLIENT.create_container(
+    await COSMOS_CLIENT.create_container(
         CosmosDBConfig.Notifications.DATABASE,
         CosmosDBConfig.Notifications.CONTAINER,
         CosmosDBConfig.Notifications.PARTITION_KEY
     )
-    COSMOS_CLIENT.create_container(
+    await COSMOS_CLIENT.create_container(
         CosmosDBConfig.Acknowledges.DATABASE,
         CosmosDBConfig.Acknowledges.CONTAINER,
         CosmosDBConfig.Acknowledges.PARTITION_KEY
     )
-    COSMOS_CLIENT.create_container(
+    await COSMOS_CLIENT.create_container(
         CosmosDBConfig.Initiations.DATABASE,
         CosmosDBConfig.Initiations.CONTAINER,
         CosmosDBConfig.Initiations.PARTITION_KEY
