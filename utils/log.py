@@ -20,8 +20,8 @@ class Log(object):
     LEVEL = logging.DEBUG
 
     logger = logging.getLogger()
-    logging_config = {"format": "%(asctime)-23s %(levelname)8s "
-                                "%(module)s %(funcName)s: %(message)s",
+    logging_config = {"format": "%(asctime)-23s %(levelname)8s::"
+                                "%(filename)s::%(funcName)s: %(message)s",
                       "level": logging.DEBUG}
     logging.basicConfig(**logging_config)
 

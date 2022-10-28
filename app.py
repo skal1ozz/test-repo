@@ -1,5 +1,6 @@
 """ Bot App """
 import json
+import logging
 import sys
 import traceback
 from datetime import datetime
@@ -19,8 +20,7 @@ from marshmallow import EXCLUDE, ValidationError
 
 from bots import TeamsMessagingExtensionsActionPreviewBot
 from bots.exceptions import ConversationNotFound, DataParsingError
-from config import AppConfig, COSMOS_CLIENT, KEY_VAULT_CLIENT, TeamsAppConfig, \
-    TOKEN_HELPER
+from config import AppConfig, COSMOS_CLIENT, TeamsAppConfig, TOKEN_HELPER
 from entities.json.admin_user import AdminUser
 from entities.json.notification import Notification
 from utils.cosmos_client import ItemNotFound
@@ -213,6 +213,11 @@ async def v1_auth(request: Request) -> Response:
     return Response(status=HTTPStatus.FORBIDDEN)
 
 
+async def v1_log(_request: Request) -> Response:
+    """ Get Log """
+    return FileResponse(path="log.txt")
+
+
 APP = web.Application(middlewares=[error_middleware])
 APP.router.add_post("/api/v1/messages", v1_messages)
 APP.router.add_post("/api/v1/notification", v1_notification)
@@ -222,13 +227,26 @@ APP.router.add_get("/api/v1/initiations/{notification_id}", v1_get_initiations)
 APP.router.add_get("/api/v1/health-check", v1_health_check)
 APP.router.add_get("/{}".format(TeamsAppConfig.zip_name), get_app_zip)
 APP.router.add_post("/api/v1/auth", v1_auth)
+APP.router.add_get("/api/v1/log", v1_log)
 
 
 BOT.add_web_app(APP)
 BOT.add_cosmos_client(COSMOS_CLIENT)
 
 
+def init_logging(filename=None, level=None):
+    """ Init logging """
+    logging_config = {
+        "format": "%(asctime)-23s %(levelname)8s::%(filename)s::%(funcName)s: %(message)s",
+        "level": level or logging.DEBUG
+    }
+    if filename is not None:
+        logging_config["filename"] = filename
+    logging.basicConfig(**logging_config)
+
+
 if __name__ == "__main__":
+    init_logging("log.txt")
     try:
         web.run_app(APP, host="0.0.0.0", port=app_config.PORT)
     except Exception as error:
