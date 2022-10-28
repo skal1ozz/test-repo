@@ -212,11 +212,6 @@ async def v1_auth(request: Request) -> Response:
     return Response(status=HTTPStatus.FORBIDDEN)
 
 
-async def v1_log(_request: Request) -> FileResponse:
-    """ Get Log """
-    return FileResponse(path=LOG_FILE)
-
-
 APP = web.Application(middlewares=[error_middleware])
 APP.router.add_post("/api/v1/messages", v1_messages)
 APP.router.add_post("/api/v1/notification", v1_notification)
@@ -226,7 +221,6 @@ APP.router.add_get("/api/v1/initiations/{notification_id}", v1_get_initiations)
 APP.router.add_get("/api/v1/health-check", v1_health_check)
 APP.router.add_get("/{}".format(TeamsAppConfig.zip_name), get_app_zip)
 APP.router.add_post("/api/v1/auth", v1_auth)
-APP.router.add_get("/api/v1/log", v1_log)
 
 
 BOT.add_web_app(APP)
@@ -234,7 +228,7 @@ BOT.add_cosmos_client(COSMOS_CLIENT)
 
 
 if __name__ == "__main__":
-    init_logging(filename=LOG_FILE)
+    init_logging()
     try:
         web.run_app(APP, host="0.0.0.0", port=app_config.PORT)
     except Exception as error:
