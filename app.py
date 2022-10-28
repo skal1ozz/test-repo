@@ -36,6 +36,7 @@ app_settings = BotFrameworkAdapterSettings(app_config.APP_ID,
                                            app_config.APP_PASSWORD)
 
 ADAPTER = BotFrameworkAdapter(app_settings)
+BOT = TeamsMessagingExtensionsActionPreviewBot(app_settings, ADAPTER)
 TAG = __name__
 
 
@@ -71,7 +72,6 @@ async def on_error(context: TurnContext, error: Exception):
 
 
 ADAPTER.on_turn_error = on_error
-BOT = TeamsMessagingExtensionsActionPreviewBot(app_settings, ADAPTER)
 
 
 @TOKEN_HELPER.is_auth
