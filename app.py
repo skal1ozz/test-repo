@@ -168,7 +168,7 @@ async def v1_health_check(_request: Request) -> Response:
         # encrypted_data = await KEY_VAULT_CLIENT.encrypt(key, b"hello")
         # decrypted_data = await KEY_VAULT_CLIENT.decrypt(key, encrypted_data)
         Log.i(TAG, "v1_health_check::ok")
-        return Response(status=HTTPStatus.OK)
+        return Response(status=HTTPStatus.OK, content_type="application/json")
     except Exception as e:
         Log.e(TAG, f"v1_health_check::error:{e}", sys.exc_info())
         raise
