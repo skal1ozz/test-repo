@@ -12,8 +12,9 @@ from botbuilder.schema import Activity, ActivityTypes, ConversationReference, \
     ChannelAccount
 from botbuilder.schema.teams import (TaskModuleContinueResponse,
                                      TaskModuleTaskInfo, TaskModuleResponse,
-                                     TaskModuleRequest)
+                                     TaskModuleRequest, TeamsChannelData)
 from botbuilder.core.teams import TeamsActivityHandler
+from botframework.connector import Channels
 from marshmallow import EXCLUDE
 
 from bots.exceptions import ConversationNotFound
@@ -131,23 +132,22 @@ class TeamsMessagingExtensionsActionPreviewBot(TeamsActivityHandler):
         # noinspection PyProtectedMember
         return parsed_url._replace(query=urlencode(params)).geturl()
 
-    async def on_members_added_activity(self, members_added: [ChannelAccount],
-                                        turn_context: TurnContext):
-        """ Executed when user installs the bot """
-        await self.cosmos_client.create_conversation_reference(turn_context)
-        for member in members_added:
-            if member.id != turn_context.activity.recipient.id:
-                await turn_context.send_activity(
-                    "Hello! Thank you for installing {}.\n"
-                    "Use 'help' command for more info.".format(
-                        AppConfig.BOT_NAME
-                    )
-                )
-
     async def on_conversation_update_activity(self, turn_context: TurnContext):
         """ On update conversation """
-        print("activity:", turn_context.activity)
         await self.cosmos_client.create_conversation_reference(turn_context)
+        if turn_context.activity.channel_id == Channels.ms_teams:
+            members = []
+            for member in turn_context.activity.members_added:
+                if member.id != turn_context.activity.recipient.id:
+                    members.append(member)
+            if len(members) == 1 and turn_context.activity.members_added:
+                member = members[0]
+                # TODO(s1z): Add languages and translations
+                await turn_context.send_activity(
+                    f"Hi {member.name or ''}!"
+                    f"Thank you for installing {AppConfig.BOT_NAME}.\n"
+                    f"Use 'help' command for more info."
+                )
 
     async def handle_submit_action(self, turn_context: TurnContext) -> None:
         """ Handle card submit action """
@@ -184,16 +184,26 @@ class TeamsMessagingExtensionsActionPreviewBot(TeamsActivityHandler):
     async def on_message_activity(self, turn_context: TurnContext) -> None:
         """ on message activity """
         if turn_context.activity.conversation.tenant_id != AppConfig.TENANT_ID:
+            # TODO(s1z): translation
             await turn_context.send_activity("Sorry, you dont have rights "
                                              "to communicate with this bot "
                                              "from your tenant")
             return
-        if turn_context.activity.value is not None:
-            return await self.handle_submit_action(turn_context)
 
         # try to save conversation reference,
         # who knows maybe we didn't get the on_conversation_update!
         await self.cosmos_client.create_conversation_reference(turn_context)
+
+        if turn_context.activity.value is not None:
+            return await self.handle_submit_action(turn_context)
+
+        message = turn_context.activity.text.strip().lower()
+
+        # TODO(s1z): translations
+        if message == "help":
+            # TODO(s1z): add proper text and translation
+            return await turn_context.send_activity("This is a help command")
+
         card = CardHelper.load_assets_card("default_card")
         attachments = [CardFactory.adaptive_card(card)]
         message = Activity(type=ActivityTypes.message, attachments=attachments)
