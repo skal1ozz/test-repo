@@ -10,6 +10,7 @@ from utils.token_helper import TokenHelper
 PROJECT_ROOT_PATH = os.path.dirname(os.path.abspath("__file__"))
 ASSETS_PATH = os.path.join(PROJECT_ROOT_PATH, "assets")
 CARDS_PATH = os.path.join(ASSETS_PATH, "cards")
+STRINGS_PATH = os.path.join(ASSETS_PATH, "strings")
 
 
 class Auth:

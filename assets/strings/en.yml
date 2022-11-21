@@ -1,0 +1,27 @@
+en:
+  hi_message: |
+    Hi %{name}!
+    Thank you for installing %{bot_name}.
+    Use '%{cmd_help}' command for more info.
+
+  greetings_message: |
+    Greetings, new users!
+    Thank you for installing %{bot_name}.
+    Use '%{cmd_help}' command for more info.
+
+  tenant_forbidden: |
+    Sorry, you dont have rights to communicate with this bot from your tenant.
+
+  unknown_request: |
+    This requires is not supported.
+
+  cmd_help: help
+
+  cmd_portal: portal
+
+  response_help: |
+    This is a help response.
+
+  response_unknown_cmd: |
+    Unknown command received.
+    Send "Help" to get the list of awailable commands.

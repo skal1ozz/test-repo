@@ -1,5 +1,5 @@
 import os
-from typing import Dict, Any, Optional, Mapping
+from typing import Dict, Any, Optional, Mapping, Union
 
 from config import CARDS_PATH
 from entities.json.notification import NotificationCosmos
@@ -13,7 +13,8 @@ class CardHelper:
     """ Card Helper """
 
     @staticmethod
-    def load_assets_card(name: str) -> Mapping[str, Any]:
+    def load_assets_card(name: str) -> Union[dict[str, Any],
+                                             Mapping[str, Any]]:
         """ 123 """
         filename = name + ".json" if name.find(".json") < 0 else name
         filename_path = os.path.join(CARDS_PATH, filename)

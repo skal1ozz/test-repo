@@ -2,6 +2,40 @@
 from base64 import b64encode, b64decode
 from typing import List, Optional, Dict, Tuple
 
+from botbuilder.core import TurnContext
+
+from utils.log import Log
+
+
+TAG = __name__
+
+
+DEFAULT_LOCALE = "en"
+
+
+def get_locale(turn_context: TurnContext, default=DEFAULT_LOCALE) -> str:
+    """ Try to get locale and fallback to "en" """
+    reference = TurnContext.get_conversation_reference(turn_context.activity)
+    if reference.locale is None:
+        Log.w(TAG, "get_locale::Error: locale is None")
+    Log.w(TAG, "get_locale: returning default locale")
+    return default
+
+
+def get_i18n(turn_context: TurnContext,
+             default: str = DEFAULT_LOCALE,
+             fallback: str = DEFAULT_LOCALE):
+    """ Get i18n configured """
+    from config import STRINGS_PATH
+    import i18n
+    locale = get_locale(turn_context, default)
+    i18n.load_path.append(STRINGS_PATH)
+    i18n.set("enable_memoization", True)
+    i18n.set('filename_format', '{locale}.{format}')
+    i18n.set('locale', locale)
+    i18n.set('fallback', fallback)
+    return i18n
+
 
 def get_first_or_none(items: List) -> Optional[Dict[str, any]]:
     """ Get first object from list or return None len < 1 """

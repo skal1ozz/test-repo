@@ -8,24 +8,25 @@ from urllib.parse import urlparse, parse_qsl, urlencode
 from aiohttp.web_app import Application
 from botbuilder.core import (TurnContext, CardFactory, BotFrameworkAdapter,
                              BotFrameworkAdapterSettings)
-from botbuilder.schema import Activity, ActivityTypes, ConversationReference, \
-    ChannelAccount
+from botbuilder.schema import Activity, ActivityTypes
 from botbuilder.schema.teams import (TaskModuleContinueResponse,
                                      TaskModuleTaskInfo, TaskModuleResponse,
-                                     TaskModuleRequest, TeamsChannelData)
+                                     TaskModuleRequest)
 from botbuilder.core.teams import TeamsActivityHandler
 from botframework.connector import Channels
 from marshmallow import EXCLUDE
 
 from bots.exceptions import ConversationNotFound
 from config import TaskModuleConfig, AppConfig
-from entities.json.conversation_reference_schema import (
-    ConversationReferenceSchema
-)
 from entities.json.medx import MedX, MXTypes
 from entities.json.notification import NotificationCosmos
 from utils.card_helper import CardHelper
 from utils.cosmos_client import CosmosClient, ItemNotFound
+from utils.functions import get_i18n
+from utils.log import Log
+
+
+TAG = __name__
 
 
 class TeamsMessagingExtensionsActionPreviewBot(TeamsActivityHandler):
@@ -78,7 +79,8 @@ class TeamsMessagingExtensionsActionPreviewBot(TeamsActivityHandler):
             mx = turn_context.activity.value.get("mx", {})
             return mx.get("notificationId", None)
 
-    def send_notification(self, notification: NotificationCosmos) -> Future[str]:
+    def send_notification(self, notification: NotificationCosmos)\
+            -> Future[str]:
         """ Notify conversation that there's a message waiting in portal """
         io_loop = asyncio.get_event_loop()
         future = Future()
@@ -102,8 +104,6 @@ class TeamsMessagingExtensionsActionPreviewBot(TeamsActivityHandler):
 
             async def callback(turn_context: TurnContext) -> None:
                 """ Turn Context callback. Kinda awful syntax, I know """
-                # TODO(s1z): Add exception handler
-                #            (like conversation not found etc...)
                 try:
                     card = CardHelper.create_notification_card(
                         await self.cosmos_client.create_notification(
@@ -115,8 +115,8 @@ class TeamsMessagingExtensionsActionPreviewBot(TeamsActivityHandler):
                                        attachments=attachments)
                     await turn_context.send_activity(message)
                     future.set_result(notification.id)
-                except Exception as e:
-                    future.set_exception(e)
+                except Exception as exception:
+                    future.set_exception(exception)
 
             await self.adapter.continue_conversation(reference, callback,
                                                      self.settings.app_id)
@@ -134,6 +134,7 @@ class TeamsMessagingExtensionsActionPreviewBot(TeamsActivityHandler):
 
     async def on_conversation_update_activity(self, turn_context: TurnContext):
         """ On update conversation """
+        i18n = get_i18n(turn_context)
         await self.cosmos_client.create_conversation_reference(turn_context)
         if turn_context.activity.channel_id == Channels.ms_teams:
             members = []
@@ -142,23 +143,33 @@ class TeamsMessagingExtensionsActionPreviewBot(TeamsActivityHandler):
                     members.append(member)
             if len(members) == 1 and turn_context.activity.members_added:
                 member = members[0]
-                # TODO(s1z): Add languages and translations
-                await turn_context.send_activity(
-                    f"Hi {member.name or ''}!"
-                    f"Thank you for installing {AppConfig.BOT_NAME}.\n"
-                    f"Use 'help' command for more info."
-                )
+                name = member.name or ''
+                bot_name = AppConfig.BOT_NAME
+                cmd_help = i18n.t("cmd_help")
+                greetings = i18n.t("hi_message", name=name, bot_name=bot_name,
+                                   cmd_help=cmd_help)
+                await turn_context.send_activity(greetings)
+                return
+            if len(members) > 1 and turn_context.activity.members_added:
+                bot_name = AppConfig.BOT_NAME
+                cmd_help = i18n.t("cmd_help")
+                greetings = i18n.t("greetings_message", bot_name=bot_name,
+                                   cmd_help=cmd_help)
+                await turn_context.send_activity(greetings)
+                return
 
     async def handle_submit_action(self, turn_context: TurnContext) -> None:
         """ Handle card submit action """
+        i18n = get_i18n(turn_context)
+
         mx = self.get_mx(turn_context)
         if mx.type == MXTypes.ACKNOWLEDGE:
             try:
                 account = turn_context.activity.from_property
-                acks = await self.cosmos_client.get_acknowledge_items(
+                ack_objects = await self.cosmos_client.get_acknowledge_items(
                     mx.notification_id
                 )
-                if len(acks) > 0:
+                if len(ack_objects) > 0:
                     return
 
                 await self.cosmos_client.create_acknowledge(mx.notification_id,
@@ -176,18 +187,18 @@ class TeamsMessagingExtensionsActionPreviewBot(TeamsActivityHandler):
                                    attachments=attachments)
                 await turn_context.update_activity(message)
             except ItemNotFound:
-                # todo(s1z): Handle unknown notification ID
+                # DO NOTHING, Notification not found!
                 pass
             return
-        await turn_context.send_activity("Unknown request!")
+        await turn_context.send_activity(i18n.t("unknown_request"))
 
     async def on_message_activity(self, turn_context: TurnContext) -> None:
         """ on message activity """
+
+        i18n = get_i18n(turn_context)
+
         if turn_context.activity.conversation.tenant_id != AppConfig.TENANT_ID:
-            # TODO(s1z): translation
-            await turn_context.send_activity("Sorry, you dont have rights "
-                                             "to communicate with this bot "
-                                             "from your tenant")
+            await turn_context.send_activity(i18n.t("tenant_forbidden"))
             return
 
         # try to save conversation reference,
@@ -199,15 +210,19 @@ class TeamsMessagingExtensionsActionPreviewBot(TeamsActivityHandler):
 
         message = turn_context.activity.text.strip().lower()
 
-        # TODO(s1z): translations
-        if message == "help":
-            # TODO(s1z): add proper text and translation
-            return await turn_context.send_activity("This is a help command")
+        if message == i18n.t("cmd_help"):
+            await turn_context.send_activity(i18n.t("response_help"))
+            return
 
-        card = CardHelper.load_assets_card("default_card")
-        attachments = [CardFactory.adaptive_card(card)]
-        message = Activity(type=ActivityTypes.message, attachments=attachments)
-        await turn_context.send_activity(message)
+        if message == i18n.t("cmd_portal"):
+            card = CardHelper.load_assets_card("default_card")
+            attachments = [CardFactory.adaptive_card(card)]
+            message = Activity(type=ActivityTypes.message,
+                               attachments=attachments)
+            await turn_context.send_activity(message)
+            return
+
+        await turn_context.send_activity(i18n.t("response_unknown_cmd"))
 
     async def on_mx_task_unsupported(self, turn_context: TurnContext) \
             -> TaskModuleResponse:
@@ -233,7 +248,7 @@ class TeamsMessagingExtensionsActionPreviewBot(TeamsActivityHandler):
                     task=TaskModuleContinueResponse(value=task_info)
                 )
         except ItemNotFound:
-            print(f"item '{notification_id}' not found")
+            Log.e(TAG, f"item '{notification_id}' not found")
         return await self.on_mx_task_default(turn_context)
 
     async def on_mx_task_default(self, turn_context: TurnContext) \
@@ -256,13 +271,17 @@ class TeamsMessagingExtensionsActionPreviewBot(TeamsActivityHandler):
     ) -> TaskModuleResponse:
         """ On task module fetch.
             Requested when user clicks on "msteams": {"type": "task/fetch"} """
+        mx_object_key = "mx"
+
         # "mx": {
         #     "type": "task/notification",
         #     "notificationId": notification_id
         # }
+
         mx = MedX.get_schema(unknown=EXCLUDE).load(
-            task_module_request.data.get("mx", dict())
+            task_module_request.data.get(mx_object_key, dict())
         )
+
         if mx.type == MXTypes.Task.NOTIFICATION and mx.notification_id:
             # 1. save action to DB
             # 2. return URL

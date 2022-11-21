@@ -47,7 +47,7 @@ async def on_error(context: TurnContext, error: Exception):
     # This check writes out errors to console log .vs. app insights.
     # NOTE: In production environment,
     #       you should consider logging this to Azure application insights.
-    print(f"\n [on_turn_error] unhandled error: {error}", file=sys.stderr)
+    Log.e(TAG, f"\n [on_turn_error] unhandled error: {error}")
     traceback.print_exc()
 
     # Send a message to the user
@@ -134,8 +134,8 @@ async def v1_notification(request: Request) -> Response:
     except DataParsingError:
         return Response(status=HTTPStatus.BAD_REQUEST,
                         reason="Bad data structure")
-    except Exception as e:
-        print("error:", e)
+    except Exception:
+        Log.e(TAG, exc_info=sys.exc_info())
         return Response(status=HTTPStatus.INTERNAL_SERVER_ERROR)
 
 
