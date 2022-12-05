@@ -80,12 +80,19 @@ async def v1_get_initiations(request: Request) -> Response:
     """ Get Initiations by Notification ID """
     # noinspection PyBroadException
     try:
+        token = request.query.get("token") or None
         notification_id = request.match_info['notification_id']
-        inits = await COSMOS_CLIENT.get_initiation_items(notification_id)
-        data = dict(data=[dict(initiator=init.initiator,
-                               timestamp=init.timestamp,
-                               id=init.id) for init in inits])
-        return Response(body=json.dumps(data), status=HTTPStatus.OK)
+        init_items, next_token = await COSMOS_CLIENT.get_initiation_items(
+            notification_id, token
+        )
+        data = dict(initiators=[dict(initiator=i.initiator,
+                                     timestamp=i.timestamp,
+                                     id=i.id) for i in init_items])
+        if next_token is not None:
+            data.update(dict(token=next_token))
+
+        body = dict(status=dict(message="OK", code=200), data=data)
+        return Response(body=json.dumps(body), status=HTTPStatus.OK)
     except ItemNotFound:
         Log.e(TAG, "v1_get_initiations::item not found", sys.exc_info())
         return Response(status=HTTPStatus.NOT_FOUND)
@@ -104,7 +111,7 @@ async def v1_get_notification(request: Request) -> Response:
         acks = await COSMOS_CLIENT.get_acknowledge_items(notification_id)
         data = dict(data=dict(
             timestamp=notification.timestamp,
-            status="DELIVERED",
+            status="DELIVERED",  # TODO(s1z): insert a real status value pls!
             acknowledged=[dict(username=ack.username,
                                timestamp=ack.timestamp) for ack in acks],
         ))
@@ -118,7 +125,7 @@ async def v1_get_notification(request: Request) -> Response:
 
 
 @TOKEN_HELPER.is_auth
-async def v1_notification(request: Request) -> Response:
+async def v1_post_notification(request: Request) -> Response:
     """ Notify channel with the link """
     # noinspection PyBroadException
     try:
@@ -176,8 +183,11 @@ async def v1_health_check(_request: Request) -> Response:
 
 async def get_app_zip(_request: Request) -> FileResponse:
     """ Get zip file """
+    from config import APP_VERSION
+    filename = f"app_{APP_VERSION}.zip"
+    headers = {"Content-Disposition": f'inline; filename="{filename}"'}
     await TeamsAppGenerator.generate_zip()
-    return FileResponse(path=TeamsAppConfig.zip_file)
+    return FileResponse(path=TeamsAppConfig.zip_file, headers=headers)
 
 
 @web.middleware
@@ -245,7 +255,7 @@ async def app_factory(bot):
 
     app = web.Application(middlewares=[error_middleware])
     app.router.add_post("/api/v1/messages", v1_messages)
-    app.router.add_post("/api/v1/notification", v1_notification)
+    app.router.add_post("/api/v1/notification", v1_post_notification)
     app.router.add_get("/api/v1/notification/{notification_id}",
                        v1_get_notification)
     app.router.add_get("/api/v1/initiations/{notification_id}",

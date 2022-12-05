@@ -10,18 +10,26 @@ en:
     Use '%{cmd_help}' command for more info.
 
   tenant_forbidden: |
-    Sorry, you dont have rights to communicate with this bot from your tenant.
+     Sorry, you do not have permission to communicate with this bot from your tenant.
 
   unknown_request: |
-    This requires is not supported.
+    This request is not supported.
 
   cmd_help: help
 
   cmd_portal: portal
 
+  portal_text: Open secured portal
+
+  portal_button_text: Open secured portal
+
   response_help: |
-    This is a help response.
+    Conversation ID: %{conversation_id}.
+    Tenant ID: %{tenant_id}
+    Supported commands:
+    %{cmd_help} - this command
+    %{cmd_portal} - request secured portal window.
 
   response_unknown_cmd: |
     Unknown command received.
-    Send "Help" to get the list of awailable commands.
+    Use '%{cmd_help}' command for more info.

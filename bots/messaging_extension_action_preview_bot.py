@@ -210,11 +210,24 @@ class TeamsMessagingExtensionsActionPreviewBot(TeamsActivityHandler):
 
         message = turn_context.activity.text.strip().lower()
 
-        if message == i18n.t("cmd_help"):
-            await turn_context.send_activity(i18n.t("response_help"))
+        cmd_help = i18n.t("cmd_help")
+        cmd_portal = i18n.t("cmd_help")
+
+        if message == cmd_help.lower():
+            tenant_id = turn_context.activity.conversation.tenant_id
+            conversation_id = turn_context.activity.conversation.id
+            response = await turn_context.send_activity(
+                i18n.t("response_help",
+                       cmd_portal=cmd_portal,
+                       cmd_help=cmd_help,
+                       tenant_id=tenant_id,
+                       conversation_id=conversation_id)
+            )
+            Log.d(TAG, "on_message_activity::help_resp: {}".format(response))
             return
 
-        if message == i18n.t("cmd_portal"):
+        if message == cmd_portal.lower():
+            card = CardHelper.load_portal_card(turn_context)
             card = CardHelper.load_assets_card("default_card")
             attachments = [CardFactory.adaptive_card(card)]
             message = Activity(type=ActivityTypes.message,
@@ -222,7 +235,8 @@ class TeamsMessagingExtensionsActionPreviewBot(TeamsActivityHandler):
             await turn_context.send_activity(message)
             return
 
-        await turn_context.send_activity(i18n.t("response_unknown_cmd"))
+        await turn_context.send_activity(i18n.t("response_unknown_cmd",
+                                                cmd_help=cmd_help))
 
     async def on_mx_task_unsupported(self, turn_context: TurnContext) \
             -> TaskModuleResponse:

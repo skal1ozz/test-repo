@@ -1,8 +1,11 @@
 import os
 from typing import Dict, Any, Optional, Mapping, Union
 
+from botbuilder.core import TurnContext
+
 from config import CARDS_PATH
 from entities.json.notification import NotificationCosmos
+from utils.functions import get_i18n
 from utils.json_func import json_loads
 
 
@@ -15,12 +18,27 @@ class CardHelper:
     @staticmethod
     def load_assets_card(name: str) -> Union[dict[str, Any],
                                              Mapping[str, Any]]:
-        """ 123 """
+        """ Load a card from assets """
         filename = name + ".json" if name.find(".json") < 0 else name
         filename_path = os.path.join(CARDS_PATH, filename)
         with open(filename_path, "r") as f:
             card_data = f.read()
-            return json_loads(card_data)
+            card_json = json_loads(card_data)
+            return card_json
+
+    @staticmethod
+    def load_portal_card(turn_context: TurnContext) -> \
+            Union[dict[str, Any], Mapping[str, Any]]:
+        """ Load portal card """
+        u18n = get_i18n(turn_context)
+
+        # TODO(s1z): Change this crap please and create a constructor!
+        portal_card = CardHelper.load_assets_card("default_card")
+        portal_card["body"][0]["items"][0]["text"] = u18n.t("portal_text")
+        portal_card["body"][1]["items"][0]["actions"][0]["title"] = u18n.t(
+            "portal_button_text"
+        )
+        return portal_card
 
     @staticmethod
     def create_notification_card(notification: NotificationCosmos,

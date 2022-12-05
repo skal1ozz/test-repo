@@ -3,7 +3,7 @@ import asyncio
 import sys
 import uuid
 from concurrent import futures
-from typing import Any, Dict, Optional, Union, List
+from typing import Any, Dict, Optional, Union, List, Tuple
 
 import azure.cosmos.cosmos_client as cosmos_client
 import azure.cosmos.exceptions as exceptions
@@ -20,6 +20,9 @@ from entities.json.conversation_reference import ConversationReference
 from entities.json.initiation import Initiation
 from entities.json.notification import NotificationCosmos
 from utils.log import Log
+
+
+TAG = __name__
 
 
 class CosmosClientException(Exception):
@@ -112,26 +115,38 @@ class CosmosClient:
 
         return await self.execute_blocking(bl)
 
-    async def get_initiation_items(self, notification_id) -> List[Initiation]:
+    async def get_initiation_items(self, notification_id,
+                                   token=None) -> Tuple[List[Initiation], str]:
         """ Get Initiation Items """
         container = await self.get_initiation_container()
 
-        def bl() -> List[Dict[str, Any]]:
+        def bl() -> Tuple[List[Dict[str, Any]], str]:
             """ Potential blocking code """
             # noinspection SqlDialectInspection,SqlNoDataSourceInspection
+            continuation_token = token
             items = []
-            for item in container.query_items(
+            query_iterable = container.query_items(
                 query="SELECT * FROM r "
                       "WHERE r.notificationId=@notification_id "
                       "ORDER BY r._ts",
                 parameters=[
                     {"name": "@notification_id", "value": notification_id},
                 ],
-                partition_key=notification_id
-            ):
-                items.append(item)
-            return Initiation.get_schema(unknown=EXCLUDE).load(items,
-                                                               many=True)
+                partition_key=notification_id,
+                max_item_count=1
+            )
+
+            if continuation_token is not None:
+                pager = query_iterable.by_page(token)
+            else:
+                pager = query_iterable.by_page()
+            current_page = list(pager.next())[0]
+            items.append(current_page)
+            continuation_token = pager.continuation_token
+            return (
+                Initiation.get_schema(unknown=EXCLUDE).load(items, many=True),
+                continuation_token
+            )
 
         return await self.execute_blocking(bl)
 

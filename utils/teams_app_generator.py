@@ -5,12 +5,12 @@ import os
 from urllib.parse import urlparse
 from zipfile import ZipFile, ZIP_DEFLATED
 
-from config import AppConfig, TeamsAppConfig, TaskModuleConfig
+from config import AppConfig, TeamsAppConfig, TaskModuleConfig, APP_VERSION
 from utils.json_func import json_loads
 
 manifest = {
     "$schema": "https://developer.microsoft.com/en-us/json-schemas/teams/v1.14/MicrosoftTeams.schema.json",
-    "version": "1.0.0",
+    # "version": "1.0.0",
     "manifestVersion": "1.14",
     # "id": "THIS IS AN APP SERVICE ID",
     # "packageName": "net.azurewebsites.bot-name",
@@ -78,6 +78,7 @@ class TeamsAppGenerator:
     @staticmethod
     def gen_manifest():
         """ Generate manifest """
+        manifest.update(dict(version=APP_VERSION))
         # ID
         manifest.update(dict(id=AppConfig.CLIENT_ID))
         # Package name

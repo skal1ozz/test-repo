@@ -13,6 +13,9 @@ CARDS_PATH = os.path.join(ASSETS_PATH, "cards")
 STRINGS_PATH = os.path.join(ASSETS_PATH, "strings")
 
 
+APP_VERSION = "1.1.188"
+
+
 class Auth:
     """ Auth type """
     class Types:
