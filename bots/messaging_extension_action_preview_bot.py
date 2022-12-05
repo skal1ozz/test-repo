@@ -211,7 +211,7 @@ class TeamsMessagingExtensionsActionPreviewBot(TeamsActivityHandler):
         message = turn_context.activity.text.strip().lower()
 
         cmd_help = i18n.t("cmd_help")
-        cmd_portal = i18n.t("cmd_help")
+        cmd_portal = i18n.t("cmd_portal")
 
         if message == cmd_help.lower():
             tenant_id = turn_context.activity.conversation.tenant_id

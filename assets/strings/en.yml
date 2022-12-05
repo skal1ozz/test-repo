@@ -1,12 +1,12 @@
 en:
   hi_message: |
-    Hi %{name}!
-    Thank you for installing %{bot_name}.
+    Hi %{name}!\r\n
+    Thank you for installing %{bot_name}.\r\n
     Use '%{cmd_help}' command for more info.
 
   greetings_message: |
-    Greetings, new users!
-    Thank you for installing %{bot_name}.
+    Greetings, new users!\r\n
+    Thank you for installing %{bot_name}.\r\n
     Use '%{cmd_help}' command for more info.
 
   tenant_forbidden: |
@@ -24,12 +24,12 @@ en:
   portal_button_text: Open secured portal
 
   response_help: |
-    Conversation ID: %{conversation_id}.
-    Tenant ID: %{tenant_id}
-    Supported commands:
-    %{cmd_help} - this command
+    Conversation ID: %{conversation_id}.\r\n
+    Tenant ID: %{tenant_id}.\r\n\r\n
+    Supported commands:\r\n
+    %{cmd_help} - this command.\r\n
     %{cmd_portal} - request secured portal window.
 
   response_unknown_cmd: |
-    Unknown command received.
+    Unknown command received.\r\n
     Use '%{cmd_help}' command for more info.
