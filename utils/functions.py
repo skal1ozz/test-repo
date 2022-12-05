@@ -1,4 +1,5 @@
 """ Handy Functions """
+import binascii
 from base64 import b64encode, b64decode
 from typing import List, Optional, Dict, Tuple
 
@@ -64,6 +65,24 @@ def b64encode_str(data: str, encoding="utf-8") -> str:
 def b64decode_str(data: str, encoding="utf-8") -> str:
     """ Decode base64 str and return decoded string """
     return b64decode_np(data.encode(encoding)).decode(encoding)
+
+
+def b64decode_str_safe(data: str, encoding="utf-8",
+                       default=None) -> Optional[str]:
+    """ Safe b64decode_str """
+    try:
+        return b64decode_str(data, encoding)
+    except (TypeError, binascii.Error):
+        return default
+
+
+def b64encode_str_safe(data: str, encoding="utf-8",
+                       default=None) -> Optional[str]:
+    """ Safe b64decode_str """
+    try:
+        return b64encode_str(data, encoding)
+    except (TypeError, binascii.Error):
+        return default
 
 
 def b64encode_np(data: bytes) -> bytes:
