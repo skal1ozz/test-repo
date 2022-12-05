@@ -1,5 +1,7 @@
 """ Handy Functions """
 import binascii
+import sys
+import urllib.parse
 from base64 import b64encode, b64decode
 from typing import List, Optional, Dict, Tuple
 
@@ -83,6 +85,28 @@ def b64encode_str_safe(data: str, encoding="utf-8",
         return b64encode_str(data, encoding)
     except (TypeError, binascii.Error, AttributeError):
         return default
+
+
+def quote_b64decode_str_safe(data: str, encoding="utf-8",
+                             default=None) -> Optional[str]:
+    """ Decode B64 data and then url_decode it """
+    data_quoted = b64decode_str_safe(data, encoding, default)
+    try:
+        return urllib.parse.unquote(data_quoted)
+    except TypeError:
+        Log.e(TAG, "quote_b64decode_str_safe: error", exc_info=sys.exc_info())
+    return default
+
+
+def quote_b64encode_str_safe(data: str, encoding="utf-8",
+                             default=None) -> Optional[str]:
+    """ url_encode data end then encode it into b64 """
+    try:
+        data_quoted = urllib.parse.quote(data)  # str even if input is bytes
+    except TypeError:
+        Log.e(TAG, "quote_b64encode_str_safe: error", exc_info=sys.exc_info())
+        return default
+    return b64encode_str_safe(data_quoted, encoding, default)
 
 
 def b64encode_np(data: bytes) -> bytes:

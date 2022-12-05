@@ -25,8 +25,7 @@ from config import AppConfig, COSMOS_CLIENT, TeamsAppConfig, TOKEN_HELPER, \
 from entities.json.admin_user import AdminUser
 from entities.json.notification import Notification
 from utils.cosmos_client import ItemNotFound
-from utils.functions import b64encode_str, b64decode_str, b64encode_str_safe, \
-    b64decode_str_safe
+from utils.functions import quote_b64encode_str_safe, quote_b64decode_str_safe
 from utils.json_func import json_loads, json_dumps
 from utils.log import Log, init_logging
 from utils.teams_app_generator import TeamsAppGenerator
@@ -85,7 +84,7 @@ async def v1_get_initiations(request: Request) -> Response:
         query_token = request.query.get("token")
         Log.d(TAG, "v1_get_initiations::query_token: {}".format(query_token))
 
-        token = b64decode_str_safe(request.query.get("token"))
+        token = quote_b64decode_str_safe(request.query.get("token"))
         notification_id = request.match_info['notification_id']
         init_items, next_token = await COSMOS_CLIENT.get_initiation_items(
             notification_id, token
@@ -94,7 +93,7 @@ async def v1_get_initiations(request: Request) -> Response:
                                      timestamp=i.timestamp,
                                      id=i.id) for i in init_items])
         if next_token is not None:
-            token_encoded = b64encode_str_safe(next_token)
+            token_encoded = quote_b64encode_str_safe(next_token)
             data.update(dict(token=token_encoded))
 
         body = dict(status=dict(message="OK", code=200), data=data)
