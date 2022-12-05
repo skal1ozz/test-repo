@@ -72,7 +72,7 @@ def b64decode_str_safe(data: str, encoding="utf-8",
     """ Safe b64decode_str """
     try:
         return b64decode_str(data, encoding)
-    except (TypeError, binascii.Error):
+    except (TypeError, binascii.Error, AttributeError):
         return default
 
 
@@ -81,7 +81,7 @@ def b64encode_str_safe(data: str, encoding="utf-8",
     """ Safe b64decode_str """
     try:
         return b64encode_str(data, encoding)
-    except (TypeError, binascii.Error):
+    except (TypeError, binascii.Error, AttributeError):
         return default
 
 
