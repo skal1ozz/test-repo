@@ -24,8 +24,8 @@ en:
   portal_button_text: Open secured portal
 
   response_help: |
-    Conversation ID: %{conversation_id}.<br/>
-    Tenant ID: %{tenant_id}.<br/><br/>
+    Conversation ID: %{conversation_id}<br/><br/>
+    Tenant ID: %{tenant_id}<br/><br/>
     Supported commands:<br/>
     %{cmd_help} - this command.<br/>
     %{cmd_portal} - request secured portal window.

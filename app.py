@@ -137,9 +137,10 @@ async def v1_post_notification(request: Request) -> Response:
         request_body = await request.text()
         schema = Notification.get_schema(unknown=EXCLUDE)
         notification = schema.load(json_loads(request_body, {})).to_db()
-        message_id = await BOT.send_notification(notification)
-        response_body = json.dumps({"data": {"messageId": message_id}})
-        return Response(body=response_body, status=HTTPStatus.OK)
+        notification_id = await BOT.send_notification(notification)
+        data = dict(notificationId=notification_id)
+        body = dict(status=dict(message="OK", code=200), data=data)
+        return Response(body=json.dumps(body), status=HTTPStatus.OK)
     except ConversationNotFound:
         return Response(status=HTTPStatus.NOT_FOUND,
                         reason="Conversation not found")
@@ -171,7 +172,7 @@ async def v1_messages(request: Request) -> Response:
     return Response(status=HTTPStatus.OK)
 
 
-async def v1_health_check(_request: Request) -> Response:
+async def v1_get_health_check(_request: Request) -> Response:
     """ Health check """
     try:
         # _container = await COSMOS_CLIENT.get_conversations_container()
@@ -186,7 +187,7 @@ async def v1_health_check(_request: Request) -> Response:
         raise
 
 
-async def get_app_zip(_request: Request) -> FileResponse:
+async def v1_get_app_zip(_request: Request) -> FileResponse:
     """ Get zip file """
     from config import APP_VERSION
     filename = f"app_{APP_VERSION}.zip"
@@ -211,7 +212,7 @@ async def error_middleware(request, handler):
                     body=json.dumps({"error": message}))
 
 
-async def v1_auth(request: Request) -> Response:
+async def v1_post_auth(request: Request) -> Response:
     """ Admin Auth """
     if "application/json" in request.headers["Content-Type"]:
         body = await request.json()
@@ -222,7 +223,9 @@ async def v1_auth(request: Request) -> Response:
         if admin_user.login and admin_user.password:
             result = await TOKEN_HELPER.do_auth(admin_user)
             if result is not None:
-                return Response(status=HTTPStatus.OK, body=json_dumps(result))
+                body = dict(status=dict(message="OK", code=200),
+                            data=result)
+                return Response(status=HTTPStatus.OK, body=json_dumps(body))
     except ValidationError:
         pass
     return Response(status=HTTPStatus.FORBIDDEN)
@@ -265,9 +268,9 @@ async def app_factory(bot):
                        v1_get_notification)
     app.router.add_get("/api/v1/initiations/{notification_id}",
                        v1_get_initiations)
-    app.router.add_get("/api/v1/health-check", v1_health_check)
-    app.router.add_get("/{}".format(TeamsAppConfig.zip_name), get_app_zip)
-    app.router.add_post("/api/v1/auth", v1_auth)
+    app.router.add_get("/api/v1/health-check", v1_get_health_check)
+    app.router.add_get("/{}".format(TeamsAppConfig.zip_name), v1_get_app_zip)
+    app.router.add_post("/api/v1/auth", v1_post_auth)
 
     bot.add_web_app(app)
     bot.add_cosmos_client(COSMOS_CLIENT)

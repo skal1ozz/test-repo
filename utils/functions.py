@@ -94,7 +94,7 @@ def quote_b64decode_str_safe(data: str, encoding="utf-8",
     try:
         return urllib.parse.unquote(data_quoted)
     except TypeError:
-        Log.e(TAG, "quote_b64decode_str_safe: error", exc_info=sys.exc_info())
+        Log.d(TAG, "quote_b64decode_str_safe: error, returning default")
     return default
 
 
@@ -104,7 +104,7 @@ def quote_b64encode_str_safe(data: str, encoding="utf-8",
     try:
         data_quoted = urllib.parse.quote(data)  # str even if input is bytes
     except TypeError:
-        Log.e(TAG, "quote_b64encode_str_safe: error", exc_info=sys.exc_info())
+        Log.d(TAG, "quote_b64encode_str_safe: error, returning default")
         return default
     return b64encode_str_safe(data_quoted, encoding, default)
 
