@@ -82,6 +82,9 @@ async def v1_get_initiations(request: Request) -> Response:
     """ Get Initiations by Notification ID """
     # noinspection PyBroadException
     try:
+        query_token = request.query.get("token")
+        Log.d(TAG, "v1_get_initiations::query_token: {}".format(query_token))
+
         token = b64decode_str_safe(request.query.get("token"))
         notification_id = request.match_info['notification_id']
         init_items, next_token = await COSMOS_CLIENT.get_initiation_items(
