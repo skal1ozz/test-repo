@@ -124,6 +124,7 @@ class CosmosClient:
             """ Potential blocking code """
             # noinspection SqlDialectInspection,SqlNoDataSourceInspection
             items = []
+            continuation_token = None
             Log.d(TAG, "get_initiation_items:: init query")
             query_iterable = container.query_items(
                 query="SELECT * FROM r "
@@ -136,18 +137,20 @@ class CosmosClient:
                 max_item_count=1
             )
             Log.d(TAG, "get_initiation_items:: getting pager")
-            pager = query_iterable.by_page(token)
-            Log.d(TAG, "get_initiation_items:: getting page items")
-            # current_page = list(pager.next())[0]
-            pager_next = pager.next()
-            Log.d(TAG, "get_initiation_items:: pager_next: "
-                       "{}".format(pager_next))
-            Log.d(TAG, "get_initiation_items:: appending items")
-            # items.append(current_page)
-            Log.d(TAG, "get_initiation_items:: returning Initiations")
+            if token is not None:
+                pager = query_iterable.by_page(token)
+            else:
+                pager = query_iterable.by_page()
+            Log.d(TAG, "get_initiation_items:: getting items")
+            new_items = list(pager.next())[0]
+            Log.d(TAG, "get_initiation_items:: adding items")
+            items.append(new_items)
+            Log.d(TAG, "get_initiation_items:: getting token")
+            continuation_token = pager.continuation_token
+
             return (
                 Initiation.get_schema(unknown=EXCLUDE).load(items, many=True),
-                pager.continuation_token
+                continuation_token
             )
 
         return await self.execute_blocking(bl)
