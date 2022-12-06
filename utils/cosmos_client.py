@@ -123,8 +123,8 @@ class CosmosClient:
         def bl() -> Tuple[List[Dict[str, Any]], str]:
             """ Potential blocking code """
             # noinspection SqlDialectInspection,SqlNoDataSourceInspection
-            continuation_token = token
             items = []
+            Log.d(TAG, "get_initiation_items:: init query")
             query_iterable = container.query_items(
                 query="SELECT * FROM r "
                       "WHERE r.notificationId=@notification_id "
@@ -135,17 +135,16 @@ class CosmosClient:
                 partition_key=notification_id,
                 max_item_count=1
             )
-
-            if continuation_token is not None:
-                pager = query_iterable.by_page(token)
-            else:
-                pager = query_iterable.by_page()
+            Log.d(TAG, "get_initiation_items:: getting pager")
+            pager = query_iterable.by_page(token)
+            Log.d(TAG, "get_initiation_items:: getting page items")
             current_page = list(pager.next())[0]
+            Log.d(TAG, "get_initiation_items:: appending items")
             items.append(current_page)
-            continuation_token = pager.continuation_token
+            Log.d(TAG, "get_initiation_items:: returning Initiations")
             return (
                 Initiation.get_schema(unknown=EXCLUDE).load(items, many=True),
-                continuation_token
+                pager.continuation_token
             )
 
         return await self.execute_blocking(bl)
