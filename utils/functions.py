@@ -40,11 +40,11 @@ def get_i18n(turn_context: TurnContext,
     return i18n
 
 
-def get_first_or_none(items: List) -> Optional[Dict[str, any]]:
+def get_first_or_none(items: List, default=None) -> Optional[Dict[str, any]]:
     """ Get first object from list or return None len < 1 """
     if len(items) > 0:
         return items[0]
-    return None
+    return default
 
 
 def parse_auth_header(header: Optional[str]) -> Tuple[Optional[str],

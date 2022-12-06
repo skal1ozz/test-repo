@@ -19,6 +19,7 @@ from entities.json.camel_case_mixin import timestamp_factory
 from entities.json.conversation_reference import ConversationReference
 from entities.json.initiation import Initiation
 from entities.json.notification import NotificationCosmos
+from utils.functions import get_first_or_none
 from utils.log import Log
 
 
@@ -123,7 +124,7 @@ class CosmosClient:
             next_page = pager.next()
             Log.d(TAG, f"get_next_page_bl::next_page:{next_page},"
                        f"list({list(next_page)})")
-            return list(next_page)[0]
+            return get_first_or_none(list(next_page), list())
         except StopIteration:
             Log.e(TAG, "get_next_page_bl:: no items found, returning '[]'",
                   exc_info=sys.exc_info())
