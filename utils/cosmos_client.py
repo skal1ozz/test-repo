@@ -120,11 +120,14 @@ class CosmosClient:
         """ Get Next page items Blocking """
         try:
             # todo(s1z): why do we get [0], as MS does? This is bad!!!
-            return list(pager.next())[0]
+            next_page = pager.next()
+            Log.d(TAG, f"get_next_page_bl::next_page:{next_page},"
+                       f"list({list(next_page)})")
+            return list(next_page)[0]
         except StopIteration:
             Log.e(TAG, "get_next_page_bl:: no items found, returning '[]'",
                   exc_info=sys.exc_info())
-        return []
+        return list()
 
     async def get_initiation_items(self, notification_id,
                                    token=None) -> Tuple[List[Initiation], str]:
@@ -147,11 +150,10 @@ class CosmosClient:
             )
             pager = query_iterable.by_page(token)
             items = self.get_next_page_bl(pager)
-            continuation_token = pager.continuation_token
-
+            Log.d(TAG, f"get_initiation_items::items: {items}")
             return (
                 Initiation.get_schema(unknown=EXCLUDE).load(items, many=True),
-                continuation_token
+                pager.continuation_token
             )
 
         return await self.execute_blocking(bl)
