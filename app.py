@@ -88,16 +88,16 @@ async def v1_get_initiations(request: Request) -> Response:
         notification_id = request.match_info.get('notification_id')
         Log.d(TAG, "v1_get_initiations::notification_id: "
                    "{}".format(notification_id))
-        init_items, next_token = await COSMOS_CLIENT.get_initiation_items(
+        init_items, paging_token = await COSMOS_CLIENT.get_initiation_items(
             notification_id, token
         )
         data = dict(initiators=[dict(initiator=i.initiator,
                                      timestamp=i.timestamp,
                                      id=i.id) for i in init_items])
-        Log.d(TAG, "v1_get_initiations::next_token: {}".format(next_token))
-        if next_token is not None:
-            token_encoded = quote_b64encode_str_safe(next_token)
-            data.update(dict(token=token_encoded))
+        Log.d(TAG, "v1_get_initiations::paging_token: {}".format(paging_token))
+        if paging_token is not None:
+            token_encoded = quote_b64encode_str_safe(paging_token)
+            data.update(dict(paging=dict(token=token_encoded)))
 
         body = dict(status=dict(message="OK", code=200), data=data)
         return Response(body=json.dumps(body), status=HTTPStatus.OK)
