@@ -142,7 +142,14 @@ class CosmosClient:
             else:
                 pager = query_iterable.by_page()
             Log.d(TAG, "get_initiation_items:: getting items")
-            new_items = list(pager.next())[0]
+
+            try:
+                new_items = list(pager.next())[0]
+            except Exception:
+                new_items = []
+                Log.e(TAG, "get_initiation_items:: oops, error",
+                      exc_info=sys.exc_info())
+
             Log.d(TAG, "get_initiation_items:: adding items")
             items.append(new_items)
             Log.d(TAG, "get_initiation_items:: getting token")
