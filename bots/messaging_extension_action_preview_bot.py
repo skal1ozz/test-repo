@@ -227,7 +227,6 @@ class TeamsMessagingExtensionsActionPreviewBot(TeamsActivityHandler):
             return
 
         if message == cmd_portal.lower():
-            card = CardHelper.load_portal_card(turn_context)
             card = CardHelper.load_assets_card("default_card")
             attachments = [CardFactory.adaptive_card(card)]
             message = Activity(type=ActivityTypes.message,
