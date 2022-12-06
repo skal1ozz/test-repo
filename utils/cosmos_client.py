@@ -117,12 +117,10 @@ class CosmosClient:
         return await self.execute_blocking(bl)
 
     @staticmethod
-    def get_next_page_bl(pager):
+    def get_next_page_bl(pager) -> List[Dict[any, any]]:
         """ Get Next page items Blocking """
         try:
-            # todo(s1z): why do we get [0], as MS does? This is bad!!!
-            next_page = pager.next()
-            return get_first_or_none(list(next_page), list())
+            return list(pager.next())
         except StopIteration:
             Log.e(TAG, "get_next_page_bl:: no items found, returning '[]'",
                   exc_info=sys.exc_info())
