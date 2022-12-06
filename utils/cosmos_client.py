@@ -149,12 +149,13 @@ class CosmosClient:
                 partition_key=notification_id,
                 max_item_count=1
             )
-            pager = query_iterable.by_page(token)
+            pager = (query_iterable.by_page(token) if token else
+                     query_iterable.by_page())
             items = self.get_next_page_bl(pager)
             Log.d(TAG, f"get_initiation_items::items: {items}")
             return (
                 Initiation.get_schema(unknown=EXCLUDE).load(items, many=True),
-                pager.continuation_token
+                pager.continuation_token or None
             )
 
         return await self.execute_blocking(bl)
