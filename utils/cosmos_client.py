@@ -122,8 +122,6 @@ class CosmosClient:
         try:
             # todo(s1z): why do we get [0], as MS does? This is bad!!!
             next_page = pager.next()
-            Log.d(TAG, f"get_next_page_bl::next_page:{next_page},"
-                       f"list({list(next_page)})")
             return get_first_or_none(list(next_page), list())
         except StopIteration:
             Log.e(TAG, "get_next_page_bl:: no items found, returning '[]'",
