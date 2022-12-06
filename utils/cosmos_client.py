@@ -115,7 +115,8 @@ class CosmosClient:
 
         return await self.execute_blocking(bl)
 
-    def get_next_page_bl(self, pager):
+    @staticmethod
+    def get_next_page_bl(pager):
         """ Get Next page items Blocking """
         try:
             # todo(s1z): why do we get [0], as MS does? This is bad!!!
@@ -145,7 +146,7 @@ class CosmosClient:
                 max_item_count=1
             )
             pager = query_iterable.by_page(token)
-            items = self.get_next_page(pager)
+            items = self.get_next_page_bl(pager)
             continuation_token = pager.continuation_token
 
             return (
