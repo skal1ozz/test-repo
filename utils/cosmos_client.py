@@ -138,9 +138,9 @@ class CosmosClient:
             Log.d(TAG, "get_initiation_items:: getting pager")
             pager = query_iterable.by_page(token)
             Log.d(TAG, "get_initiation_items:: getting page items")
-            current_page = list(pager.next())[0]
+            # current_page = list(pager.next())[0]  # WTF is this shit?
             Log.d(TAG, "get_initiation_items:: appending items")
-            items.append(current_page)
+            # items.append(current_page)
             Log.d(TAG, "get_initiation_items:: returning Initiations")
             return (
                 Initiation.get_schema(unknown=EXCLUDE).load(items, many=True),
