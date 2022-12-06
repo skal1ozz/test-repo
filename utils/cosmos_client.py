@@ -143,7 +143,7 @@ class CosmosClient:
                     {"name": "@notification_id", "value": notification_id},
                 ],
                 partition_key=notification_id,
-                max_item_count=1
+                max_item_count=20
             )
             pager = (query_iterable.by_page(token) if token else
                      query_iterable.by_page())
