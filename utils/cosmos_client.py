@@ -115,6 +115,16 @@ class CosmosClient:
 
         return await self.execute_blocking(bl)
 
+    def get_next_page_bl(self, pager):
+        """ Get Next page items Blocking """
+        try:
+            # todo(s1z): why do we get [0], as MS does? This is bad!!!
+            return list(pager.next())[0]
+        except StopIteration:
+            Log.e(TAG, "get_next_page_bl:: no items found, returning '[]'",
+                  exc_info=sys.exc_info())
+        return []
+
     async def get_initiation_items(self, notification_id,
                                    token=None) -> Tuple[List[Initiation], str]:
         """ Get Initiation Items """
@@ -123,8 +133,6 @@ class CosmosClient:
         def bl() -> Tuple[List[Dict[str, Any]], str]:
             """ Potential blocking code """
             # noinspection SqlDialectInspection,SqlNoDataSourceInspection
-            items = []
-            continuation_token = None
             Log.d(TAG, "get_initiation_items:: init query")
             query_iterable = container.query_items(
                 query="SELECT * FROM r "
@@ -136,23 +144,8 @@ class CosmosClient:
                 partition_key=notification_id,
                 max_item_count=1
             )
-            Log.d(TAG, "get_initiation_items:: getting pager")
-            if token is not None:
-                pager = query_iterable.by_page(token)
-            else:
-                pager = query_iterable.by_page()
-            Log.d(TAG, "get_initiation_items:: getting items")
-
-            try:
-                new_items = list(pager.next())[0]
-            except Exception:
-                new_items = []
-                Log.e(TAG, "get_initiation_items:: oops, error",
-                      exc_info=sys.exc_info())
-
-            Log.d(TAG, "get_initiation_items:: adding items")
-            items.append(new_items)
-            Log.d(TAG, "get_initiation_items:: getting token")
+            pager = query_iterable.by_page(token)
+            items = self.get_next_page(pager)
             continuation_token = pager.continuation_token
 
             return (

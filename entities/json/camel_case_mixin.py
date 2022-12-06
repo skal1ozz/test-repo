@@ -23,15 +23,11 @@ class CamelCaseMixin:
     @pre_load
     def to_snake_case(self, data, **_kwargs):
         """ to snake case pre load method """
-        if isinstance(data, list):
-            return [self.to_snake_case(item) for item in data]
         return {snakecase(key): value for key, value in data.items()}
 
     @post_dump
     def to_camel_case(self, data, **_kwargs):
         """ to camel case post load method """
-        if isinstance(data, list):
-            return [self.to_camel_case(item) for item in data]
         return {camelcase(key): value for key, value in data.items()}
 
     @classmethod
