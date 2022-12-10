@@ -1,13 +1,12 @@
 """ PA message to send to Teams """
+from dataclasses import dataclass
 from typing import Optional
 
-import marshmallow_dataclass
-
-from entities.json.camel_case_schema import CamelCaseSchema
+from entities.json.camel_case_mixin import CamelCaseMixin
 
 
-@marshmallow_dataclass.dataclass(base_schema=CamelCaseSchema)
-class PAMessage:
+@dataclass
+class PAMessage(CamelCaseMixin):
     """ PA message Schema """
     conversation_id: str
     tenant_id: str

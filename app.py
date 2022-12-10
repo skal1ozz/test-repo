@@ -251,7 +251,7 @@ async def v1_pa_message(request: Request) -> Response:
     # noinspection PyBroadException
     try:
         body = json_loads(await request.text())
-        pa_message = marshmallow_dataclass.class_schema(PAMessage)().load(body)
+        pa_message = PAMessage.get_schema().load(body)
         notification_id = await BOT.send_message(pa_message.conversation_id,
                                                  pa_message.tenant_id,
                                                  pa_message.text,
