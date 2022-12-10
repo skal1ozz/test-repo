@@ -2,13 +2,13 @@
 import asyncio
 import uuid
 from asyncio import Future
-from typing import Optional
+from typing import Optional, Dict
 from urllib.parse import urlparse, parse_qsl, urlencode
 
 from aiohttp.web_app import Application
 from botbuilder.core import (TurnContext, CardFactory, BotFrameworkAdapter,
                              BotFrameworkAdapterSettings)
-from botbuilder.schema import Activity, ActivityTypes
+from botbuilder.schema import Activity, ActivityTypes, ResourceResponse
 from botbuilder.schema.teams import (TaskModuleContinueResponse,
                                      TaskModuleTaskInfo, TaskModuleResponse,
                                      TaskModuleRequest)
@@ -78,6 +78,49 @@ class TeamsMessagingExtensionsActionPreviewBot(TeamsActivityHandler):
         if isinstance(turn_context.activity.value, dict):
             mx = turn_context.activity.value.get("mx", {})
             return mx.get("notificationId", None)
+
+    def send_message(self,
+                     conversation_id: str,
+                     tenant_id: str, text: str = None,
+                     card: Dict[any, any] = None) -> Future[ResourceResponse]:
+        """ Send message as a bot """
+        io_loop = asyncio.get_event_loop()
+        future = Future()
+
+        async def routine():
+            """ async routine """
+            try:
+                reference = await self.cosmos_client.get_conversation(
+                    conversation_id, tenant_id
+                )
+            except ItemNotFound:
+                future.set_exception(ConversationNotFound("not found"))
+                return
+            except Exception as e:
+                future.set_exception(e)
+                return
+
+            async def callback(turn_context: TurnContext) -> None:
+                """ Turn Context callback. Kinda awful syntax, I know """
+                try:
+                    attachments = None
+                    if card is not None:
+                        attachments = [CardFactory.adaptive_card(card)]
+
+                    response = await turn_context.send_activity(Activity(
+                        type=ActivityTypes.message,
+                        text=text,
+                        attachments=attachments)
+                    )
+                    if response:
+                        future.set_result(response)
+                except Exception as exception:
+                    future.set_exception(exception)
+
+            await self.adapter.continue_conversation(reference, callback,
+                                                     self.settings.app_id)
+        io_loop.create_task(routine())
+        return future
 
     def send_notification(self, notification: NotificationCosmos)\
             -> Future[str]:

@@ -327,14 +327,14 @@ class CosmosClient:
         except ItemNotFound:
             return None
 
-    async def get_conversation(self, conversation_id: str)\
-            -> ConversationReference:
+    async def get_conversation(self, conversation_id: str,
+                               tenant_id: str = None) -> ConversationReference:
         """ Get Conversation Reference """
         from config import AppConfig
 
         container = await self.get_conversations_container()
         item = await self.get_item(container, conversation_id,
-                                   AppConfig.TENANT_ID)
+                                   tenant_id or AppConfig.TENANT_ID)
         return ConversationReference.get_schema(unknown=EXCLUDE)\
                                     .load(item).to_ms_reference()
 

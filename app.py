@@ -4,6 +4,7 @@ import sys
 import traceback
 from datetime import datetime
 from http import HTTPStatus
+from typing import Dict, Union, List
 
 import marshmallow_dataclass
 from aiohttp import web
@@ -24,6 +25,7 @@ from config import AppConfig, COSMOS_CLIENT, TeamsAppConfig, TOKEN_HELPER, \
     CosmosDBConfig
 from entities.json.admin_user import AdminUser
 from entities.json.notification import Notification
+from entities.json.pa_message import PAMessage
 from utils.cosmos_client import ItemNotFound
 from utils.functions import quote_b64encode_str_safe, quote_b64decode_str_safe
 from utils.json_func import json_loads, json_dumps
@@ -74,6 +76,16 @@ async def on_error(context: TurnContext, error: Exception):
 
 
 ADAPTER.on_turn_error = on_error
+
+
+def make_response(code: int, message: str,
+                  data: Union[Dict[any, any], List[Dict[any, any]]] = None)\
+        -> Response:
+    """ Make an API json response """
+    body = dict(status=dict(code=code, message=message))
+    if data is not None:
+        body.update(dict(data=data))
+    return Response(status=HTTPStatus.OK, body=json_dumps(body))
 
 
 @TOKEN_HELPER.is_auth
@@ -234,6 +246,24 @@ async def v1_post_auth(request: Request) -> Response:
     return Response(status=HTTPStatus.FORBIDDEN)
 
 
+async def v1_pa_message(request: Request) -> Response:
+    """ Send card to the bot """
+    # noinspection PyBroadException
+    try:
+        body = json_loads(await request.text())
+        pa_message = marshmallow_dataclass.class_schema(PAMessage)().load(body)
+        notification_id = await BOT.send_message(pa_message.conversation_id,
+                                                 pa_message.tenant_id,
+                                                 pa_message.text,
+                                                 pa_message.card)
+        Log.d(TAG, f"v1_pa_message::notification: '{notification_id}'")
+    except Exception:
+        Log.e(TAG, "v1_pa_message::error sending message",
+              exc_info=sys.exc_info())
+        return make_response(500, "Server Error")
+    return make_response(400, "Bad Request")
+
+
 async def init_db_containers():
     """ To speed up the process we have to create containers first """
     await COSMOS_CLIENT.create_db(CosmosDBConfig.Conversations.DATABASE)
@@ -275,6 +305,8 @@ async def app_factory(bot):
     app.router.add_get("/{}".format(TeamsAppConfig.zip_name), v1_get_app_zip)
     app.router.add_post("/api/v1/auth", v1_post_auth)
 
+    # PA endpoints
+    app.router.add_post("/api/pa/v1/message", v1_pa_message)
     bot.add_web_app(app)
     bot.add_cosmos_client(COSMOS_CLIENT)
 
