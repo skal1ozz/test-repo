@@ -243,6 +243,7 @@ class TeamsMessagingExtensionsActionPreviewBot(TeamsActivityHandler):
                 return
 
         await self.cosmos_client.create_conversation_reference(turn_context)
+
         if turn_context.activity.value is not None:
             # TODO(s1z): translate this string
             return await turn_context.send_activity("Sorry, not supported! :(")
@@ -255,7 +256,7 @@ class TeamsMessagingExtensionsActionPreviewBot(TeamsActivityHandler):
             conversation_id = turn_context.activity.conversation.id
             data = dict(conversationId=conversation_id, tenantId=tenant_id,
                         text=message)
-            async with session.post(AppConfig.PA_URL, data=data) as resp:
+            async with session.post(AppConfig.PA_URL, json=data) as resp:
                 Log.e(TAG, f"on_message_activity::response.status:"
                            f"{resp.status}")
                 rest_text = await resp.text()
