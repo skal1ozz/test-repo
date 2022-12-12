@@ -252,11 +252,12 @@ async def v1_pa_message(request: Request) -> Response:
     try:
         body = json_loads(await request.text())
         pa_message = PAMessage.get_schema().load(body)
-        notification_id = await BOT.send_message(pa_message.conversation_id,
-                                                 pa_message.tenant_id,
-                                                 pa_message.text,
-                                                 pa_message.card)
-        Log.d(TAG, f"v1_pa_message::notification: '{notification_id}'")
+        response = await BOT.send_message(pa_message.conversation_id,
+                                          pa_message.tenant_id,
+                                          pa_message.text,
+                                          pa_message.card)
+        Log.d(TAG, f"v1_pa_message::notification: '{response}'")
+        return make_response(200, "OK")
     except Exception:
         Log.e(TAG, "v1_pa_message::error sending message",
               exc_info=sys.exc_info())

@@ -5,6 +5,7 @@ from asyncio import Future
 from typing import Optional, Dict
 from urllib.parse import urlparse, parse_qsl, urlencode
 
+import aiohttp
 from aiohttp.web_app import Application
 from botbuilder.core import (TurnContext, CardFactory, BotFrameworkAdapter,
                              BotFrameworkAdapterSettings)
@@ -236,49 +237,75 @@ class TeamsMessagingExtensionsActionPreviewBot(TeamsActivityHandler):
         await turn_context.send_activity(i18n.t("unknown_request"))
 
     async def on_message_activity(self, turn_context: TurnContext) -> None:
-        """ on message activity """
-
         i18n = get_i18n(turn_context)
-
         if turn_context.activity.conversation.tenant_id != AppConfig.TENANT_ID:
-            await turn_context.send_activity(i18n.t("tenant_forbidden"))
-            return
+                await turn_context.send_activity(i18n.t("tenant_forbidden"))
+                return
 
-        # try to save conversation reference,
-        # who knows maybe we didn't get the on_conversation_update!
         await self.cosmos_client.create_conversation_reference(turn_context)
-
         if turn_context.activity.value is not None:
-            return await self.handle_submit_action(turn_context)
+            # TODO(s1z): translate this string
+            return await turn_context.send_activity("Sorry, not supported! :(")
 
-        message = turn_context.activity.text.strip().lower()
-
-        cmd_help = i18n.t("cmd_help")
-        cmd_portal = i18n.t("cmd_portal")
-
-        if message == cmd_help.lower():
+        # send request to PA
+        async with aiohttp.ClientSession() as session:
+            # TODO(s1z): string bot's @mention if needed.
+            message = turn_context.activity.text.strip().lower()
             tenant_id = turn_context.activity.conversation.tenant_id
             conversation_id = turn_context.activity.conversation.id
-            response = await turn_context.send_activity(
-                i18n.t("response_help",
-                       cmd_portal=cmd_portal,
-                       cmd_help=cmd_help,
-                       tenant_id=tenant_id,
-                       conversation_id=conversation_id)
-            )
-            Log.d(TAG, "on_message_activity::help_resp: {}".format(response))
-            return
+            data = dict(conversationId=conversation_id, tenantId=tenant_id,
+                        text=message)
+            async with session.post(AppConfig.PA_URL, data=data) as resp:
+                Log.e(TAG, f"on_message_activity::response.status:"
+                           f"{resp.status}")
+                rest_text = await resp.text()
+                Log.e(TAG, f"on_message_activity::response.text: {rest_text}")
+                return
 
-        if message == cmd_portal.lower():
-            card = CardHelper.load_assets_card("default_card")
-            attachments = [CardFactory.adaptive_card(card)]
-            message = Activity(type=ActivityTypes.message,
-                               attachments=attachments)
-            await turn_context.send_activity(message)
-            return
-
-        await turn_context.send_activity(i18n.t("response_unknown_cmd",
-                                                cmd_help=cmd_help))
+    # async def on_message_activity(self, turn_context: TurnContext) -> None:
+    #     """ on message activity """
+    #
+    #     i18n = get_i18n(turn_context)
+    #
+    #     if turn_context.activity.conversation.tenant_id != AppConfig.TENANT_ID:
+    #         await turn_context.send_activity(i18n.t("tenant_forbidden"))
+    #         return
+    #
+    #     # try to save conversation reference,
+    #     # who knows maybe we didn't get the on_conversation_update!
+    #     await self.cosmos_client.create_conversation_reference(turn_context)
+    #
+    #     if turn_context.activity.value is not None:
+    #         return await self.handle_submit_action(turn_context)
+    #
+    #     message = turn_context.activity.text.strip().lower()
+    #
+    #     cmd_help = i18n.t("cmd_help")
+    #     cmd_portal = i18n.t("cmd_portal")
+    #
+    #     if message == cmd_help.lower():
+    #         tenant_id = turn_context.activity.conversation.tenant_id
+    #         conversation_id = turn_context.activity.conversation.id
+    #         response = await turn_context.send_activity(
+    #             i18n.t("response_help",
+    #                    cmd_portal=cmd_portal,
+    #                    cmd_help=cmd_help,
+    #                    tenant_id=tenant_id,
+    #                    conversation_id=conversation_id)
+    #         )
+    #         Log.d(TAG, "on_message_activity::help_resp: {}".format(response))
+    #         return
+    #
+    #     if message == cmd_portal.lower():
+    #         card = CardHelper.load_assets_card("default_card")
+    #         attachments = [CardFactory.adaptive_card(card)]
+    #         message = Activity(type=ActivityTypes.message,
+    #                            attachments=attachments)
+    #         await turn_context.send_activity(message)
+    #         return
+    #
+    #     await turn_context.send_activity(i18n.t("response_unknown_cmd",
+    #                                             cmd_help=cmd_help))
 
     async def on_mx_task_unsupported(self, turn_context: TurnContext) \
             -> TaskModuleResponse:
