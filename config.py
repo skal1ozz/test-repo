@@ -72,12 +72,12 @@ class AppConfig:
     APP_ID = os.environ.get("MS_APP_ID", "app-id")
     APP_PASSWORD = os.environ.get("MS_APP_PASSWORD", "app-password")
     PA_URL = os.environ.get(
-        "PA_URL", ("https://prod-192.westeurope.logic.azure.com:443"
-                   "/workflows/22a28a2927454e6eb935484d84097132"
-                   "/triggers/manual/paths/"
-                   "invoke?api-version=2016-06-01&"
-                   "sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0"
-                   "&sig=7cNmhQciqmG-CGzOWdS6gTXocXN7fn-900hU04riygs")
+        "PA_URL", (
+            "https://prod-204.westeurope.logic.azure.com:443/workflows/"
+            "7780619c3381411991bf5c161719d0bf/triggers/manual/paths/"
+            "invoke?api-version=2016-06-01&sp=%2Ftriggers%2Fmanual%2Frun&"
+            "sv=1.0&sig=yQiQs3aA_nT_NilCzFzQgYj14UgOAXluUyDfphatx-4"
+        )
     )
 
 
