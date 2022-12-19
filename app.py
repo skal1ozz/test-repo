@@ -265,6 +265,21 @@ async def v1_pa_message(request: Request) -> Response:
     return make_response(400, "Bad Request")
 
 
+async def v1_pa_authorize(request: Request) -> Response:
+    """ Authorize Power Automate flow token """
+    # noinspection PyBroadException
+    try:
+        data = json_loads(await request.text())
+        if data is not None:
+            return make_response(200, "OK")
+    except Exception:
+        Log.e(TAG, "v1_pa_authorize::error sending message",
+              exc_info=sys.exc_info())
+        return make_response(500, "Server Error")
+    # TODO(s1z): Change thit to 400 when auth is enabled!!!
+    return make_response(200, "Bad Request")
+
+
 async def init_db_containers():
     """ To speed up the process we have to create containers first """
     await COSMOS_CLIENT.create_db(CosmosDBConfig.Conversations.DATABASE)
@@ -308,6 +323,7 @@ async def app_factory(bot):
 
     # PA endpoints
     app.router.add_post("/api/pa/v1/message", v1_pa_message)
+    app.router.add_post("/api/pa/v1/authorize", v1_pa_authorize)
     bot.add_web_app(app)
     bot.add_cosmos_client(COSMOS_CLIENT)
 

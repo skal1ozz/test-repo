@@ -349,7 +349,7 @@ class CosmosClient:
         return NotificationCosmos.get_schema(unknown=EXCLUDE).load(item)
 
     async def create_conversation_reference(self, turn_context: TurnContext)\
-            -> None:
+            -> Dict[str, Any]:
         """ Save Conversation Regerence """
         from config import CosmosDBConfig
 
@@ -372,7 +372,7 @@ class CosmosClient:
             Log.i(__name__, "create_conversation_reference::error:",
                   sys.exc_info())
             if e.status_code == 409:  # Already exists
-                return
+                return reference_json
             raise SaveItemError(e.http_error_message)
 
     async def create_initiation(self, initiator: str,

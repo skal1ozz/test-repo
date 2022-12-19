@@ -238,24 +238,66 @@ class TeamsMessagingExtensionsActionPreviewBot(TeamsActivityHandler):
 
     async def on_message_activity(self, turn_context: TurnContext) -> None:
         i18n = get_i18n(turn_context)
-        if turn_context.activity.conversation.tenant_id != AppConfig.TENANT_ID:
-                await turn_context.send_activity(i18n.t("tenant_forbidden"))
-                return
 
-        await self.cosmos_client.create_conversation_reference(turn_context)
+        # check tenant
+        if turn_context.activity.conversation.tenant_id != AppConfig.TENANT_ID:
+            await turn_context.send_activity(i18n.t("tenant_forbidden"))
+            return
+
+        # save conversation reference
+        reference = await self.cosmos_client.create_conversation_reference(
+            turn_context
+        )
 
         if turn_context.activity.value is not None:
-            # TODO(s1z): translate this string
-            return await turn_context.send_activity("Sorry, not supported! :(")
+            return await self.handle_submit_action(turn_context)
+
+        """ DATA STRUCTURE:
+            {
+                "authorizartion": {
+                    "token": "123"
+                },
+                "message": "message",
+                "reference": {
+                    "user": {
+                        "name": null,
+                        "id": "29:12v6wyPB....",
+                        "role": null,
+                        "aadObjectId": "ed77c873-f9a4-4d94-bd08-e159fa3349d2"
+                    },
+                    "channelId": "msteams",
+                    "conversation": {
+                        "id": "a:1aStwF-.....jogUhlEo",
+                        "tenantId": "d3c0e3f9-060e-43d8-9d64-57fbb51d2003",
+                        "name": null,
+                        "aadObjectId": null,
+                        "conversationType": "personal",
+                        "properties": null,
+                        "role": null,
+                        "isGroup": null
+                    },
+                    "activityId": "f:c20375cb-8a88-6d68-8339-090d46d54fa0",
+                    "serviceUrl": "https://smba.trafficmanager.net/emea/",
+                    "bot": {
+                        "name": "SuperBotFinal",
+                        "id": "28:e250ed7c-49a9-46ab-9210-edf26cf4a221",
+                        "role": null,
+                        "aadObjectId": null
+                    },
+                    "locale": null,
+                    "id": "a:1aStwF-......gUhlEo"
+                }
+            }
+        
+        """
 
         # send request to PA
         async with aiohttp.ClientSession() as session:
             # TODO(s1z): string bot's @mention if needed.
             message = turn_context.activity.text.strip().lower()
-            tenant_id = turn_context.activity.conversation.tenant_id
-            conversation_id = turn_context.activity.conversation.id
-            data = dict(conversationId=conversation_id, tenantId=tenant_id,
-                        text=message)
+            data = dict(authorizartion=dict(token=reference),
+                        reference=reference,
+                        message=message)
             async with session.post(AppConfig.PA_URL, json=data) as resp:
                 Log.e(TAG, f"on_message_activity::response.status:"
                            f"{resp.status}")
