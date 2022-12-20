@@ -1,6 +1,7 @@
 """ Bot App """
 import json
 import sys
+import time
 import traceback
 from datetime import datetime
 from http import HTTPStatus
@@ -169,6 +170,7 @@ async def v1_post_notification(request: Request) -> Response:
 
 async def v1_messages(request: Request) -> Response:
     """ messages endpoint """
+    start = time.time()
     if "application/json" in request.headers["Content-Type"]:
         body = await request.json()
     else:
@@ -184,6 +186,8 @@ async def v1_messages(request: Request) -> Response:
     if invoke_response:
         return json_response(data=invoke_response.body,
                              status=invoke_response.status)
+    took = time.time() - start
+    Log.d(TAG, f"v1_messages::nessage handling took: {took} seconds")
     return Response(status=HTTPStatus.OK)
 
 
