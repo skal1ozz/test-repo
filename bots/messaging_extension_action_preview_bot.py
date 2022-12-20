@@ -1,5 +1,6 @@
 """ Message extension bot """
 import asyncio
+import time
 import uuid
 from asyncio import Future
 from typing import Optional, Dict
@@ -245,9 +246,12 @@ class TeamsMessagingExtensionsActionPreviewBot(TeamsActivityHandler):
             return
 
         # save conversation reference
+        start = time.time()
         reference = await self.cosmos_client.create_conversation_reference(
             turn_context
         )
+        Log.d(TAG, "on_message_activity::create_conversation_reference::took:"
+                   f"{time.time() - start}")
 
         if turn_context.activity.value is not None:
             return await self.handle_submit_action(turn_context)
