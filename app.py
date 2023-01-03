@@ -307,6 +307,11 @@ async def init_db_containers():
         CosmosDBConfig.Initiations.CONTAINER,
         CosmosDBConfig.Initiations.PARTITION_KEY
     )
+    await COSMOS_CLIENT.create_container(
+        CosmosDBConfig.Flows.DATABASE,
+        CosmosDBConfig.Flows.CONTAINER,
+        CosmosDBConfig.Flows.PARTITION_KEY
+    )
 
 
 async def app_factory(bot):

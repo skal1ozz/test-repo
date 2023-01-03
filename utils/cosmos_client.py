@@ -17,6 +17,7 @@ from entities.json.acknowledge import Acknowledge
 from entities.json.acknowledge_schema import AcknowledgeSchema
 from entities.json.camel_case_mixin import timestamp_factory
 from entities.json.conversation_reference import ConversationReference
+from entities.json.flow import Flow
 from entities.json.initiation import Initiation
 from entities.json.notification import NotificationCosmos
 from utils.functions import get_first_or_none
@@ -305,6 +306,16 @@ class CosmosClient:
             CosmosDBConfig.Initiations.PARTITION_KEY
         )
 
+    async def get_flow_container(self) -> ContainerProxy:
+        """ Get Flow container """
+        from config import CosmosDBConfig
+
+        return await self.get_container(
+            CosmosDBConfig.Flows.DATABASE,
+            CosmosDBConfig.Flows.CONTAINER,
+            CosmosDBConfig.Flows.PARTITION_KEY
+        )
+
     async def create_acknowledge(self, notification_id: str,
                                  account: ChannelAccount) -> Dict[str, Any]:
         """ Add acknowledge to the DB """
@@ -384,3 +395,21 @@ class CosmosClient:
                                 notification_id=notification_id)
         data = Initiation.get_schema().dump(initiation)
         await self.create_item(container, body=data)
+
+    async def create_flow(self, cmd, url, tenant_id=None):
+        """ Create Flow """
+        from config import AppConfig
+        container = await self.get_flow_container()
+        flow = Flow(tenant_id=tenant_id or AppConfig.TENANT_ID, cmd=cmd,
+                    url=url)
+        data = Flow.get_schema().dump(flow)
+        return await self.create_item(container, body=data)
+
+    async def get_flow(self, cmd, tenant_id=None) -> Flow:
+        """ Get Flow """
+        from config import AppConfig
+
+        container = await self.get_flow_container()
+        item = await self.get_item(container, cmd,
+                                   tenant_id or AppConfig.TENANT_ID)
+        return Flow.get_schema(unknown=EXCLUDE).load(item)

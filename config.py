@@ -114,6 +114,13 @@ class CosmosDBConfig:
         PK = "id"
         PARTITION_KEY = PartitionKey(path="/notificationId")
 
+    class Flows:
+        """ Flows """
+        DATABASE = "bot"
+        CONTAINER = "flows"
+        PK = "id"
+        PARTITION_KEY = PartitionKey(path="/tenantId")
+
 
 COSMOS_CLIENT = CosmosClient(CosmosDBConfig.HOST, CosmosDBConfig.KEY)
 KEY_VAULT_CLIENT = AzureKeyVaultClient(AppConfig.CLIENT_ID,
