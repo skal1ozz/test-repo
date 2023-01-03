@@ -10,5 +10,5 @@ from entities.json.camel_case_mixin import CamelCaseMixin
 class Flow(CamelCaseMixin):
     """ Notification Dataclass """
     tenant_id: str
-    cmd: str
+    id: str
     url: str

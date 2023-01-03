@@ -400,7 +400,7 @@ class CosmosClient:
         """ Create Flow """
         from config import AppConfig
         container = await self.get_flow_container()
-        flow = Flow(tenant_id=tenant_id or AppConfig.TENANT_ID, cmd=cmd,
+        flow = Flow(tenant_id=tenant_id or AppConfig.TENANT_ID, id=cmd,
                     url=url)
         data = Flow.get_schema().dump(flow)
         return await self.create_item(container, body=data)
