@@ -5,7 +5,7 @@ import time
 import uuid
 from asyncio import Future
 from typing import Optional, Dict
-from urllib.parse import urlparse, parse_qsl, urlencode
+from urllib.parse import urlparse, parse_qsl, urlencode, unquote
 
 import aiohttp
 from aiohttp.web_app import Application
@@ -374,7 +374,7 @@ class TeamsMessagingExtensionsActionPreviewBot(TeamsActivityHandler):
             async with aiohttp.ClientSession() as session:
                 # TODO(s1z): string bot's @mention if needed.
                 data = dict(reference=reference, message=message)
-                async with session.post(flow.url, json=data) as resp:
+                async with session.post(unquote(flow.url), json=data) as resp:
                     Log.e(TAG, f"on_message_activity::response.status:"
                                f"{resp.status}")
                     rest_text = await resp.text()
