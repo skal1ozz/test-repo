@@ -370,6 +370,7 @@ class TeamsMessagingExtensionsActionPreviewBot(TeamsActivityHandler):
         # noinspection PyBroadException
         try:
             flow = await self.cosmos_client.get_flow(message)
+            Log.e(TAG, f"on_message_activity::flow.url:{flow.url}")
             async with aiohttp.ClientSession() as session:
                 # TODO(s1z): string bot's @mention if needed.
                 data = dict(reference=reference, message=message)
