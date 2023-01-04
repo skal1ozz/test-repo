@@ -342,7 +342,8 @@ class TeamsMessagingExtensionsActionPreviewBot(TeamsActivityHandler):
 
         # TODO(s1z): Remove me when it's prod
         if message.find("flow") == 0:
-            params = message.split(' ')
+            # Strip data again cause 'message' data is lower case
+            params = turn_context.activity.text.strip().split(' ')
             if len(params) != 3:
                 response = await turn_context.send_activity(
                     "Incorrect syntax. Please the syntax below:<br/>"
