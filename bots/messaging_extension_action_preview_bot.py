@@ -367,7 +367,7 @@ class TeamsMessagingExtensionsActionPreviewBot(TeamsActivityHandler):
                 return
 
         # try get flow link
-        def request():
+        async def request():
             """ request """
             try:
                 flow = await self.cosmos_client.get_flow(message)
