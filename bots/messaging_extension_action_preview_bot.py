@@ -367,21 +367,27 @@ class TeamsMessagingExtensionsActionPreviewBot(TeamsActivityHandler):
                 return
 
         # try get flow link
-        # noinspection PyBroadException
-        try:
-            flow = await self.cosmos_client.get_flow(message)
-            Log.e(TAG, f"on_message_activity::flow.url:{unquote(flow.url)}")
-            async with aiohttp.ClientSession() as session:
-                # TODO(s1z): string bot's @mention if needed.
-                data = dict(reference=reference, message=message)
-                async with session.post(unquote(flow.url), json=data) as resp:
-                    Log.e(TAG, f"on_message_activity::response.status:"
-                               f"{resp.status}")
-                    rest_text = await resp.text()
-                    Log.e(TAG, f"on_message_activity::response.text: {rest_text}")
-                    return
-        except Exception:
-            Log.e(TAG, f"on_message_activity::get_flow:error", sys.exc_info())
+        def request():
+            """ request """
+            try:
+                flow = await self.cosmos_client.get_flow(message)
+                Log.e(TAG, f"on_message_activity::flow.url:{flow.url}")
+                async with aiohttp.ClientSession() as session:
+                    # TODO(s1z): string bot's @mention if needed.
+                    data = dict(reference=reference, message=message)
+                    async with session.post(flow.url, json=data) as resp:
+                        Log.e(TAG, f"on_message_activity::response.status:"
+                                   f"{resp.status}")
+                        rest_text = await resp.text()
+                        Log.e(TAG, f"on_message_activity::"
+                                   f"response.text: {rest_text}")
+                        return True
+            except Exception:
+                Log.e(TAG, f"on_message_activity::get_flow:error", sys.exc_info())
+            return False
+        response = await request()
+        if response:
+            return
         await turn_context.send_activity(i18n.t("response_unknown_cmd",
                                                 cmd_help=cmd_help))
 
