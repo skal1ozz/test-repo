@@ -259,7 +259,8 @@ async def v1_pa_message(request: Request) -> Response:
         response = await BOT.send_message(pa_message.conversation_id,
                                           pa_message.tenant_id,
                                           pa_message.text,
-                                          pa_message.card)
+                                          pa_message.card,
+                                          pa_message.cards)
         Log.d(TAG, f"v1_pa_message::notification: '{response}'")
         return make_response(200, "OK")
     except Exception:

@@ -11,4 +11,5 @@ class PAMessage(CamelCaseMixin):
     conversation_id: str
     tenant_id: str
     text: Optional[str]
-    card: Optional[Union[Dict, List]]
+    card: Optional[Dict]
+    cards: Optional[List[Dict]]

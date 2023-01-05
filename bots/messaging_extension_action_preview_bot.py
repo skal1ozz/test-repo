@@ -85,7 +85,8 @@ class TeamsMessagingExtensionsActionPreviewBot(TeamsActivityHandler):
     def send_message(self,
                      conversation_id: str,
                      tenant_id: str, text: str = None,
-                     card: Optional[Union[List, Dict[any, any]]] = None
+                     card: Optional[Dict[any, any]] = None,
+                     cards: Optional[List[Dict[any, any]]] = None
                      ) -> Future[ResourceResponse]:
         """ Send message as a bot """
         io_loop = asyncio.get_event_loop()
@@ -108,13 +109,12 @@ class TeamsMessagingExtensionsActionPreviewBot(TeamsActivityHandler):
                 """ Turn Context callback. Kinda awful syntax, I know """
                 try:
                     attachments = None
-                    if card is not None:
-                        if isinstance(card, list):
-                            attachments = [
-                                CardFactory.adaptive_card(x) for x in card
-                            ]
-                        else:
-                            attachments = [CardFactory.adaptive_card(card)]
+                    if cards is not None:
+                        attachments = [
+                            CardFactory.adaptive_card(x) for x in cards
+                        ]
+                    elif card is not None:
+                        attachments = [CardFactory.adaptive_card(card)]
 
                     response = await turn_context.send_activity(Activity(
                         type=ActivityTypes.message,
