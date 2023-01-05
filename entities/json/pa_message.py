@@ -1,6 +1,6 @@
 """ PA message to send to Teams """
 from dataclasses import dataclass
-from typing import Optional
+from typing import Optional, Union, List, Dict
 
 from entities.json.camel_case_mixin import CamelCaseMixin
 
@@ -11,4 +11,4 @@ class PAMessage(CamelCaseMixin):
     conversation_id: str
     tenant_id: str
     text: Optional[str]
-    card: Optional[str]
+    card: Optional[Union[Dict, List]]

@@ -4,7 +4,7 @@ import sys
 import time
 import uuid
 from asyncio import Future
-from typing import Optional, Dict
+from typing import Optional, Dict, Union, List
 from urllib.parse import urlparse, parse_qsl, urlencode, unquote
 
 import aiohttp
@@ -85,7 +85,8 @@ class TeamsMessagingExtensionsActionPreviewBot(TeamsActivityHandler):
     def send_message(self,
                      conversation_id: str,
                      tenant_id: str, text: str = None,
-                     card: Dict[any, any] = None) -> Future[ResourceResponse]:
+                     card: Optional[Union[List, Dict[any, any]]] = None
+                     ) -> Future[ResourceResponse]:
         """ Send message as a bot """
         io_loop = asyncio.get_event_loop()
         future = Future()
@@ -108,7 +109,12 @@ class TeamsMessagingExtensionsActionPreviewBot(TeamsActivityHandler):
                 try:
                     attachments = None
                     if card is not None:
-                        attachments = [CardFactory.adaptive_card(card)]
+                        if isinstance(card, list):
+                            attachments = [
+                                CardFactory.adaptive_card(x) for x in card
+                            ]
+                        else:
+                            attachments = [CardFactory.adaptive_card(card)]
 
                     response = await turn_context.send_activity(Activity(
                         type=ActivityTypes.message,
