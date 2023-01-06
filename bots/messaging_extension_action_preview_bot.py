@@ -111,6 +111,7 @@ class TeamsMessagingExtensionsActionPreviewBot(TeamsActivityHandler):
                 try:
                     attachments = None
                     if cards is not None:
+                        Log.i(TAG, f"send_message::cards: {cards}")
                         attachments = [
                             CardFactory.adaptive_card(x) for x in cards
                         ]
