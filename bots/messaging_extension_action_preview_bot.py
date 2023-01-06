@@ -116,14 +116,16 @@ class TeamsMessagingExtensionsActionPreviewBot(TeamsActivityHandler):
                             CardFactory.adaptive_card(x) for x in cards
                         ]
                     elif card is not None:
+                        # TODO(s1z): create parase for all card types
                         attachments = [CardFactory.adaptive_card(card)]
 
-                    response = await turn_context.send_activity(Activity(
-                        type=(AttachmentLayoutTypes.carousel if cards else
-                              ActivityTypes.message),
+                    activity = Activity(
+                        type=ActivityTypes.message,
                         text=text,
-                        attachments=attachments)
+                        attachments=attachments,
+                        attachment_layout=AttachmentLayoutTypes.carousel
                     )
+                    response = await turn_context.send_activity(activity)
                     if response:
                         future.set_result(response)
                 except Exception as exception:
