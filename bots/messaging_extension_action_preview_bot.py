@@ -10,8 +10,9 @@ from urllib.parse import urlparse, parse_qsl, urlencode, unquote
 import aiohttp
 from aiohttp.web_app import Application
 from botbuilder.core import (TurnContext, CardFactory, BotFrameworkAdapter,
-                             BotFrameworkAdapterSettings)
-from botbuilder.schema import Activity, ActivityTypes, ResourceResponse
+                             BotFrameworkAdapterSettings, MessageFactory)
+from botbuilder.schema import Activity, ActivityTypes, ResourceResponse, \
+    AttachmentLayoutTypes
 from botbuilder.schema.teams import (TaskModuleContinueResponse,
                                      TaskModuleTaskInfo, TaskModuleResponse,
                                      TaskModuleRequest)
@@ -117,7 +118,8 @@ class TeamsMessagingExtensionsActionPreviewBot(TeamsActivityHandler):
                         attachments = [CardFactory.adaptive_card(card)]
 
                     response = await turn_context.send_activity(Activity(
-                        type=ActivityTypes.message,
+                        type=(AttachmentLayoutTypes.carousel if cards else
+                              ActivityTypes.message),
                         text=text,
                         attachments=attachments)
                     )
