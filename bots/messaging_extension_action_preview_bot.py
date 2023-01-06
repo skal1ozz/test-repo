@@ -119,12 +119,12 @@ class TeamsMessagingExtensionsActionPreviewBot(TeamsActivityHandler):
                         # TODO(s1z): create parase for all card types
                         attachments = [CardFactory.adaptive_card(card)]
 
-                    activity = Activity(
-                        type=ActivityTypes.message,
-                        text=text,
-                        attachments=attachments,
-                        attachment_layout=AttachmentLayoutTypes.carousel
-                    )
+                    activity = Activity(type=ActivityTypes.message,
+                                        text=text, attachments=attachments)
+                    if len(attachments) > 1:
+                        activity.attachment_layout = (
+                            AttachmentLayoutTypes.carousel
+                        )
                     response = await turn_context.send_activity(activity)
                     if response:
                         future.set_result(response)
